@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empresas - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/easy.css' %}?v=5">
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <main class="easy-page">
+        <div class="easy-header">
+            <div>
+                <p class="eyebrow">Clientes y cuentas</p>
+                <h1>Empresas</h1>
+            </div>
+            <a href="{% url 'usuarios:crear_empresa' %}" class="btn btn-success">Registrar empresa</a>
+        </div>
+
+        <section class="toolbar-panel">
+            <form method="get" class="toolbar-form">
+                <label class="toolbar-field">
+                    <span>Buscar empresa</span>
+                    <input class="toolbar-input" type="search" name="search" value="{{ search_query }}" placeholder="Nombre, NIT, contacto o dirección">
+                </label>
+                <button class="btn btn-primary" type="submit">Buscar</button>
+                {% if search_query %}
+                <a class="btn btn-secondary" href="{% url 'usuarios:lista_empresas' %}">Limpiar</a>
+                {% endif %}
+            </form>
+        </section>
+
+        <section class="company-grid">
+            {% for empresa in empresas %}
+            <article class="company-card">
+                <div class="company-card-header">
+                    <h2>{{ empresa.nombre }}</h2>
+                    <span class="status-pill">{{ empresa.activa|yesno:"Activa,Inactiva" }}</span>
+                </div>
+                <dl class="company-meta">
+                    <div>
+                        <dt>NIT</dt>
+                        <dd>{{ empresa.nit }}</dd>
+                    </div>
+                    <div>
+                        <dt>Contacto</dt>
+                        <dd>{{ empresa.contacto|default:"Sin contacto" }}</dd>
+                    </div>
+                    <div class="form-grid-full">
+                        <dt>Dirección base</dt>
+                        <dd>{{ empresa.direccion }}</dd>
+                    </div>
+                    <div>
+                        <dt>Teléfono</dt>
+                        <dd>{{ empresa.telefono|default:"-" }}</dd>
+                    </div>
+                    <div>
+                        <dt>Usuarios</dt>
+                        <dd>{{ empresa.usuarios_count }}</dd>
+                    </div>
+                    <div>
+                        <dt>Envíos</dt>
+                        <dd>{{ empresa.envios_count }}</dd>
+                    </div>
+                </dl>
+                <div class="company-actions">
+                    <a class="btn btn-secondary" href="{% url 'usuarios:editar_empresa' empresa.id %}">Editar</a>
+                    <a class="btn btn-outline" href="{% url 'usuarios:eliminar_empresa' empresa.id %}">Eliminar</a>
+                </div>
+            </article>
+            {% empty %}
+            <div class="empty-state">
+                No hay empresas registradas con ese criterio.
+            </div>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>

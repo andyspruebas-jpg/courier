@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Zonas - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pagination.css' %}">
+</head>
+
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <div class="page-container">
+        <h1>Lista de Zonas</h1>
+
+        <div class="actions-bar">
+            <a href="{% url 'zonas:crear_zona' %}" class="btn-add">
+                ➕ Agregar nueva zona
+            </a>
+
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre de zona..."
+                    value="{{ search_query }}" autocomplete="off">
+                <span class="search-loader" id="searchLoader">⏳</span>
+            </div>
+        </div>
+
+        <div id="tableContainer">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    {% for zona in page_obj %}
+                    <tr>
+                        <td>{{ zona.nombre }}</td>
+                        <td>
+                            <a href="{% url 'zonas:ver_zona' zona.id %}">Ver</a> |
+                            <a href="{% url 'zonas:editar_zona' zona.id %}">Editar</a> |
+                            <a href="{% url 'zonas:eliminar_zona' zona.id %}">Eliminar</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" style="text-align: center; padding: 2rem; color: var(--color-text-lighter);">
+                            {% if search_query %}
+                            No se encontraron zonas que coincidan con "{{ search_query }}"
+                            {% else %}
+                            No hay zonas registradas
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                <span class="pagination-info">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    ({{ page_obj.paginator.count }} resultados)
+                </span>
+
+                {% if page_obj.has_previous %}
+                <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}"
+                    class="pagination-btn">⏮️</a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                    class="pagination-btn">◀️</a>
+                {% else %}
+                <button class="pagination-btn" disabled>⏮️</button>
+                <button class="pagination-btn" disabled>◀️</button>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="pagination-btn active">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <a
+                    href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                    class="pagination-btn">{{ num }}</a>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                        class="pagination-btn">▶️</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                        class="pagination-btn">⏭️</a>
+                    {% else %}
+                    <button class="pagination-btn" disabled>▶️</button>
+                    <button class="pagination-btn" disabled>⏭️</button>
+                    {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchLoader = document.getElementById('searchLoader');
+        let searchTimeout;
+
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            searchLoader.classList.add('active');
+
+            searchTimeout = setTimeout(() => {
+                const searchValue = this.value;
+                const url = new URL(window.location.href);
+
+                if (searchValue) {
+                    url.searchParams.set('search', searchValue);
+                } else {
+                    url.searchParams.delete('search');
+                }
+                url.searchParams.set('page', '1');
+
+                window.location.href = url.toString();
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>

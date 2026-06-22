@@ -1,0 +1,559 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+
+    <style>
+        /* ======== FONDO ULTRA MODERNO ======== */
+        body {
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 50%, #0a0e1a 100%);
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            position: relative;
+        }
+
+        /* Fondo animado con partículas */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(20, 184, 166, 0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        .dashboard-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            text-align: center;
+            padding: 2rem 2rem 3rem 2rem;
+            box-sizing: border-box;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ======== HEADER PREMIUM ======== */
+        .header {
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #818cf8 0%, #14b8a6 50%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 0.5rem 0;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            animation: shimmer 3s ease-in-out infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        h3 {
+            font-size: 1.1rem;
+            color: #e4e4e7;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 1rem;
+            color: #a1a1aa;
+            margin: 0.3rem 0 1rem;
+            font-weight: 400;
+        }
+
+        /* ======== TARJETAS DE GRÁFICOS GLASSMORPHISM ======== */
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .chart-box {
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 1.5rem;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(99, 102, 241, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.8s ease-out backwards;
+        }
+
+        .chart-box:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .chart-box:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Borde brillante animado */
+        .chart-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 1.5rem;
+            padding: 2px;
+            background: linear-gradient(135deg, #6366f1 0%, #14b8a6 50%, #6366f1 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .chart-box:hover::before {
+            opacity: 1;
+            animation: borderRotate 3s linear infinite;
+        }
+
+        @keyframes borderRotate {
+
+            0%,
+            100% {
+                background: linear-gradient(135deg, #6366f1 0%, #14b8a6 50%, #6366f1 100%);
+            }
+
+            50% {
+                background: linear-gradient(135deg, #14b8a6 0%, #6366f1 50%, #14b8a6 100%);
+            }
+        }
+
+        /* Efecto glow en hover */
+        .chart-box:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow:
+                0 20px 60px rgba(99, 102, 241, 0.3),
+                0 0 0 1px rgba(99, 102, 241, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        .chart-box canvas {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 320px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ======== BOTONES PREMIUM ======== */
+        .dashboard-container>button,
+        .dashboard-container>.action-btn,
+        .dashboard-container>.print-btn,
+        .dashboard-container>.routes-btn {
+            margin: 0.75rem;
+            padding: 1rem 2.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            animation: fadeInUp 0.8s ease-out backwards;
+            animation-delay: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 330px;
+            text-decoration: none;
+            line-height: 1.2;
+        }
+
+        .print-btn {
+            background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+            color: white;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .print-btn:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.5);
+            transform: translateY(-3px);
+        }
+
+        .routes-btn {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            color: white;
+            border: 1px solid rgba(20, 184, 166, 0.3);
+        }
+
+        .routes-btn:hover {
+            background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+            box-shadow: 0 8px 32px rgba(20, 184, 166, 0.5);
+            transform: translateY(-3px);
+        }
+
+        .action-btn.is-disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .dashboard-status {
+            min-height: 1.25rem;
+            margin-top: 0.25rem;
+            color: #fbbf24;
+            font-size: 0.95rem;
+        }
+
+        /* Efecto ripple en botones */
+        .print-btn::before,
+        .routes-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .print-btn:hover::before,
+        .routes-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .print-btn:active,
+        .routes-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        /* ======== RESPONSIVE ======== */
+        @media (max-width: 1024px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .charts-row {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .chart-box canvas {
+                max-height: 280px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                overflow-y: auto;
+            }
+
+            .dashboard-container {
+                padding: 1.5rem 1rem 2rem 1rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .chart-box {
+                padding: 1.5rem;
+            }
+
+            .chart-box canvas {
+                max-height: 250px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .chart-box {
+                padding: 1.25rem;
+            }
+
+            .chart-box canvas {
+                max-height: 220px;
+            }
+
+            .print-btn,
+            .routes-btn {
+                width: 100%;
+                min-width: 0;
+                font-size: 0.95rem;
+                padding: 0.9rem 2rem;
+            }
+
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ======== PRINT STYLES ======== */
+        @media print {
+
+            .print-btn,
+            .routes-btn,
+            nav,
+            .navbar,
+            .header p {
+                display: none !important;
+            }
+
+            body {
+                background: #fff;
+            }
+
+            body::before {
+                display: none;
+            }
+
+            .chart-box {
+                box-shadow: none;
+                border: 1px solid #ccc;
+                page-break-inside: avoid;
+                background: white;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <div class="dashboard-container">
+        <div class="header">
+            <h1>📊 Panel de Control - Courier Bolivian Express</h1>
+            <p>Visualiza los indicadores operativos actualizados en tiempo real</p>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-box">
+                <h3>Usuarios, Mensajeros y Envíos Pendientes</h3>
+                <canvas id="generalChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Porcentaje de Entregas Completadas</h3>
+                <canvas id="entregasChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 🔹 Botones de acción -->
+        <button type="button" class="action-btn print-btn" id="printDashboardBtn">
+            🖨️ Imprimir / Exportar PDF
+        </button>
+        {% if request.usuario_actual.rol.nombre|lower == "administrador" %}
+        <a class="action-btn routes-btn" href="{% url 'usuarios:rutas_mensajeros' %}">
+            🗺️ Ver rutas de mensajeros
+        </a>
+        {% else %}
+        <button type="button" class="action-btn routes-btn is-disabled" id="routesBlockedBtn">
+            🗺️ Ver rutas de mensajeros
+        </button>
+        {% endif %}
+        <p class="dashboard-status" id="dashboardStatus" aria-live="polite"></p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const status = document.getElementById('dashboardStatus');
+            const printBtn = document.getElementById('printDashboardBtn');
+            const blockedRoutesBtn = document.getElementById('routesBlockedBtn');
+
+            if (printBtn) {
+                printBtn.addEventListener('click', function () {
+                    if (status) {
+                        status.textContent = 'Abriendo el cuadro de impresión. Para PDF elige "Guardar como PDF".';
+                    }
+                    window.print();
+                });
+            }
+
+            if (blockedRoutesBtn) {
+                blockedRoutesBtn.addEventListener('click', function () {
+                    if (status) {
+                        status.textContent = 'Las rutas de mensajeros solo están disponibles para administradores.';
+                    }
+                });
+            }
+        });
+
+        fetch("{% url 'usuarios:home_data' %}")
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                // === Gráfico de barras ===
+                const generalCtx = document.getElementById('generalChart').getContext('2d');
+                new Chart(generalCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Usuarios', 'Mensajeros', 'Pendientes'],
+                        datasets: [{
+                            label: 'Cantidad',
+                            data: [
+                                data.usuarios_count,
+                                data.mensajeros_activos,
+                                data.envios_pendientes
+                            ],
+                            backgroundColor: ['#3498db', '#2ecc71', '#f39c12']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Categorías',
+                                    color: '#d4d4d8',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
+                                },
+                                ticks: { color: '#d4d4d8' }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Cantidad',
+                                    color: '#d4d4d8',
+                                    font: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    }
+                                },
+                                ticks: { color: '#d4d4d8' }
+                            }
+                        }
+                    }
+                });
+
+                // === Gráfico circular ===
+                const entregasCtx = document.getElementById('entregasChart').getContext('2d');
+                new Chart(entregasCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Entregados', 'Pendientes'],
+                        datasets: [{
+                            data: [data.porcentaje_entregados, 100 - data.porcentaje_entregados],
+                            backgroundColor: ['#27ae60', '#e74c3c']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) {
+                                        return ctx.label + ': ' + ctx.parsed.toFixed(2) + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(function (err) {
+                console.error("Error cargando datos:", err);
+            });
+    </script>
+</body>
+
+</html>

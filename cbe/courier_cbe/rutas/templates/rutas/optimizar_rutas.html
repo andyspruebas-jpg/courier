@@ -1,0 +1,382 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparar Rutas - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <style>
+        /* ======== FONDO ULTRA MODERNO ======== */
+        body {
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 50%, #0a0e1a 100%);
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            position: relative;
+        }
+
+        /* Fondo animado con partículas */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(20, 184, 166, 0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        /* ======== CONTENEDOR ======== */
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ======== HEADER PREMIUM ======== */
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #818cf8 0%, #14b8a6 50%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 2rem 0;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            animation: shimmer 3s ease-in-out infinite;
+            background-size: 200% 200%;
+            text-align: center;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        /* ======== PANEL DE TARJETAS ======== */
+        .panel {
+            display: flex;
+            gap: 1.5rem;
+            align-items: stretch;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        /* ======== TARJETAS GLASSMORPHISM ======== */
+        .card {
+            flex: 1;
+            min-width: 250px;
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #fafafa;
+            padding: 1.5rem;
+            border-radius: 1.25rem;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(99, 102, 241, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(99, 102, 241, 0.6);
+            box-shadow:
+                0 12px 48px rgba(99, 102, 241, 0.3),
+                0 0 0 1px rgba(99, 102, 241, 0.2);
+        }
+
+        .card strong {
+            display: block;
+            color: #818cf8;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .card div {
+            margin-top: 0.75rem;
+            color: #e4e4e7;
+            font-size: 1rem;
+        }
+
+        /* ======== LEYENDA ======== */
+        .legend {
+            background: rgba(24, 24, 27, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #fafafa;
+            font-weight: 600;
+        }
+
+        .dot {
+            width: 20px;
+            height: 8px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .dot-blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .dot-green {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        /* ======== MAPA ======== */
+        #map {
+            height: 65vh;
+            width: 100%;
+            border-radius: 1.5rem;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(99, 102, 241, 0.1);
+            margin-top: 1.5rem;
+            overflow: hidden;
+        }
+
+        /* ======== RESPONSIVE ======== */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .card {
+                min-width: 100%;
+            }
+
+            #map {
+                height: 50vh;
+            }
+        }
+
+        @media print {
+
+            nav,
+            .navbar {
+                display: none !important;
+            }
+
+            body::before {
+                display: none;
+            }
+
+            #map {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <div class="container">
+        <h1>🗺️ Comparación - Ruta Algoritmo vs Google</h1>
+
+        <div class="panel">
+            <div class="card">
+                <strong>🔵 Ruta Google</strong>
+                <div>⏱️ Duración: {{ ruta_google.duracion }} min</div>
+                <div>📏 Distancia: {% if ruta_google.distancia %}{{ ruta_google.distancia }} km{% else %}N/D{% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <strong>🟢 Ruta Algorítmica</strong>
+                <div>⏱️ Duración: {{ ruta_algo.duracion }} min</div>
+                <div>📏 Distancia: {% if ruta_algo.distancia %}{{ ruta_algo.distancia }} km{% else %}N/D{% endif %}
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="dot dot-blue"></div>
+                    <span>Google</span>
+                </div>
+                <div class="legend-item">
+                    <div class="dot dot-green"></div>
+                    <span>Algoritmo</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="map"></div>
+
+        <script id="puntos-data" type="application/json">{{ puntos|safe }}</script>
+
+        <script>
+            // Decodificador de polyline (Google)
+            function decodePolyline(encoded) {
+                if (!encoded) return [];
+                var points = [];
+                var index = 0, len = encoded.length;
+                var lat = 0, lng = 0;
+
+                while (index < len) {
+                    var b, shift = 0, result = 0;
+                    do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+                    var dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                    lat += dlat;
+
+                    shift = 0; result = 0;
+                    do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+                    var dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
+                    lng += dlng;
+
+                    points.push({ lat: lat / 1e5, lng: lng / 1e5 });
+                }
+                return points;
+            }
+
+            function initMap() {
+                const center = { lat: -16.5, lng: -68.1193 };
+                const map = new google.maps.Map(document.getElementById("map"), {
+                    zoom: 13,
+                    center,
+                    styles: [
+                        { elementType: "geometry", stylers: [{ color: "#212121" }] },
+                        { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+                        { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+                        { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+                        { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+                        { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#263c3f" }] },
+                        { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#6b9a76" }] },
+                        { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] },
+                        { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212a37" }] },
+                        { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
+                        { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#746855" }] },
+                        { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1f2835" }] },
+                        { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#f3d19c" }] },
+                        { featureType: "transit", elementType: "geometry", stylers: [{ color: "#2f3948" }] },
+                        { featureType: "transit.station", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+                        { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
+                        { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#515c6d" }] },
+                        { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] }
+                    ]
+                });
+
+                // Datos desde servidor
+                const puntos = JSON.parse(document.getElementById("puntos-data").textContent || "[]");
+
+                // Marcadores para puntos (origen/destino/paradas)
+                puntos.forEach(p => {
+                    if (p.lat && p.lng) {
+                        const title = p.direccion || (p.tipo ? p.tipo : '');
+                        new google.maps.Marker({
+                            position: { lat: p.lat, lng: p.lng },
+                            map,
+                            title: title,
+                            label: (p.tipo && p.tipo.toString().substring(0, 1)) || ''
+                        });
+                    }
+                });
+
+                // Polylines: inyectadas desde contexto Django (escape)
+                const polyGoogle = "{{ ruta_google.polyline|default:''|escapejs }}";
+                const polyAlgo = "{{ ruta_algo.polyline|default:''|escapejs }}";
+
+                const pathGoogle = decodePolyline(polyGoogle);
+                const pathAlgo = decodePolyline(polyAlgo);
+
+                // Dibujar Google (azul)
+                if (pathGoogle.length) {
+                    const gPath = pathGoogle.map(p => ({ lat: p.lat, lng: p.lng }));
+                    new google.maps.Polyline({
+                        path: gPath,
+                        strokeColor: '#3b82f6',
+                        strokeOpacity: 0.9,
+                        strokeWeight: 5,
+                        map
+                    });
+                }
+
+                // Dibujar Algoritmo (verde)
+                if (pathAlgo.length) {
+                    const aPath = pathAlgo.map(p => ({ lat: p.lat, lng: p.lng }));
+                    new google.maps.Polyline({
+                        path: aPath,
+                        strokeColor: '#10b981',
+                        strokeOpacity: 0.9,
+                        strokeWeight: 5,
+                        map
+                    });
+                }
+
+                // Ajustar bounds al contenido
+                const bounds = new google.maps.LatLngBounds();
+                puntos.forEach(p => { if (p.lat && p.lng) bounds.extend({ lat: p.lat, lng: p.lng }); });
+                pathGoogle.forEach(p => bounds.extend({ lat: p.lat, lng: p.lng }));
+                pathAlgo.forEach(p => bounds.extend({ lat: p.lat, lng: p.lng }));
+                if (!bounds.isEmpty()) map.fitBounds(bounds);
+            }
+        </script>
+
+        <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap" async
+            defer></script>
+    </div>
+</body>
+
+</html>

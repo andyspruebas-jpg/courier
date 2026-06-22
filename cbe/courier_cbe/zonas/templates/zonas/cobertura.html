@@ -1,0 +1,140 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cobertura de Zonas - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <style>
+        .coverage-layout {
+            display: grid;
+            grid-template-columns: minmax(260px, 340px) 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        #map {
+            min-height: 620px;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .zones-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .zone-row {
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 12px;
+            background: var(--color-bg-secondary);
+            cursor: pointer;
+        }
+
+        .zone-row strong {
+            display: block;
+            color: var(--color-text);
+        }
+
+        .zone-row p {
+            margin: 6px 0 0;
+            color: var(--color-text-secondary);
+        }
+
+        @media (max-width: 820px) {
+            .coverage-layout {
+                grid-template-columns: 1fr;
+            }
+
+            #map {
+                min-height: 420px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <main class="page-container">
+        <h1>Cobertura de Zonas</h1>
+
+        <div class="coverage-layout">
+            <aside class="zones-list" id="zones-list">
+                {% for zona in zonas %}
+                <button class="zone-row" type="button" data-zona-id="{{ zona.id }}">
+                    <strong>{{ zona.nombre }}</strong>
+                    {% if zona.descripcion %}<p>{{ zona.descripcion }}</p>{% endif %}
+                </button>
+                {% empty %}
+                <p>No hay zonas registradas.</p>
+                {% endfor %}
+            </aside>
+            <section>
+                <div id="map"></div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const zonas = JSON.parse('{{ zonas_json|escapejs }}');
+        const polygons = new Map();
+        const colors = ["#2563eb", "#0891b2", "#059669", "#ca8a04", "#dc2626", "#7c3aed"];
+        let map;
+
+        function normalizarArea(area) {
+            return (area || [])
+                .map((point) => Array.isArray(point) ? { lat: Number(point[0]), lng: Number(point[1]) } : null)
+                .filter((point) => point && Number.isFinite(point.lat) && Number.isFinite(point.lng));
+        }
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 12,
+                center: { lat: -16.5, lng: -68.15 },
+                mapTypeId: "roadmap",
+            });
+
+            const bounds = new google.maps.LatLngBounds();
+            zonas.forEach((zona, index) => {
+                const path = normalizarArea(zona.area);
+                if (path.length < 3) return;
+                path.forEach((point) => bounds.extend(point));
+                const color = colors[index % colors.length];
+                const polygon = new google.maps.Polygon({
+                    paths: path,
+                    map,
+                    strokeColor: color,
+                    strokeOpacity: 0.85,
+                    strokeWeight: 2,
+                    fillColor: color,
+                    fillOpacity: 0.22,
+                });
+                polygons.set(String(zona.id), { polygon, path });
+            });
+
+            if (!bounds.isEmpty()) map.fitBounds(bounds);
+
+            document.querySelectorAll("[data-zona-id]").forEach((button) => {
+                button.addEventListener("click", () => enfocarZona(button.dataset.zonaId));
+            });
+        }
+
+        function enfocarZona(id) {
+            const item = polygons.get(String(id));
+            if (!item) return;
+            const bounds = new google.maps.LatLngBounds();
+            item.path.forEach((point) => bounds.extend(point));
+            map.fitBounds(bounds);
+        }
+
+        window.initMap = initMap;
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap" async defer></script>
+</body>
+
+</html>

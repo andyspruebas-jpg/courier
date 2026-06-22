@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'css/easy.css' %}?v=5">
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+    <main class="easy-page">
+        <section class="tracking-card">
+            <p class="eyebrow">Consulta rápida</p>
+            <h1>Seguimiento</h1>
+            <form method="GET" class="plain-form">
+                <label for="numero">Código de guía</label>
+                <input class="tracking-input" type="text" id="numero" name="numero" value="{{ numero }}" placeholder="Ej: CBE-LP010" required autofocus>
+                <div class="quick-actions">
+                    <button class="btn btn-success" type="submit">Consultar</button>
+                    <a class="btn btn-secondary" href="{% url 'envios:solicitar_envio' %}">Nueva solicitud</a>
+                </div>
+            </form>
+        </section>
+
+        {% if envios_cliente %}
+        <section class="easy-section">
+            <div class="section-head">
+                <div>
+                    <p class="eyebrow">Tus guías</p>
+                    <h2>Envíos y recojos registrados</h2>
+                </div>
+            </div>
+            <div class="responsive-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Guía</th>
+                            <th>Tipo</th>
+                            <th>Destino</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for envio in envios_cliente %}
+                        <tr>
+                            <td><strong>{{ envio.numero_seguimiento }}</strong></td>
+                            <td>{{ envio.tipo }}</td>
+                            <td>{{ envio.destinatario_nombre }}<br><span class="muted">{{ envio.destino_direccion }}</span></td>
+                            <td><span class="status-pill">{{ envio.estado_publico }}</span></td>
+                            <td><a class="btn btn-secondary" href="{% url 'envios:seguimiento_detalle' envio.numero_seguimiento %}">Ver seguimiento</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endif %}
+    </main>
+</body>
+</html>

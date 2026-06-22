@@ -1,0 +1,189 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes Operativos - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'css/easy.css' %}?v=5">
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <main class="easy-page report-page">
+        <div class="easy-header">
+            <div>
+                <p class="eyebrow">Gestión operativa</p>
+                <h1>Reportes</h1>
+            </div>
+            <div class="quick-actions">
+                <a class="btn btn-success" download href="{% url 'envios:reportes_excel' %}?{{ request.GET.urlencode }}">Excel</a>
+                <a class="btn btn-primary" download href="{% url 'envios:reportes_pdf' %}?{{ request.GET.urlencode }}">PDF</a>
+            </div>
+        </div>
+
+        <section class="metric-grid">
+            <article class="metric-card">
+                <span>Total de envíos</span>
+                <strong>{{ metrics.total_envios }}</strong>
+            </article>
+            <article class="metric-card success">
+                <span>Entregados</span>
+                <strong>{{ metrics.entregados }}</strong>
+            </article>
+            <article class="metric-card warning">
+                <span>Pendientes</span>
+                <strong>{{ metrics.pendientes }}</strong>
+            </article>
+            <article class="metric-card">
+                <span>Ventas pagadas</span>
+                <strong>Bs. {{ metrics.ventas|floatformat:2 }}</strong>
+            </article>
+        </section>
+
+        <section class="report-layout">
+            <article class="report-panel">
+                <div class="panel-heading">
+                    <h2>Estado de entregas</h2>
+                    <strong>{{ metrics.completion_rate }}% completado</strong>
+                </div>
+                <div class="donut" style="--value: {{ metrics.completion_rate|stringformat:'s' }};">
+                    <span>{{ metrics.completion_rate }}%</span>
+                </div>
+                <div class="chart-list">
+                    {% for item in metrics.estado_resumen %}
+                    <div class="chart-row">
+                        <div class="chart-row-label">
+                            <span>{{ item.label }}</span>
+                            <strong>{{ item.total }}</strong>
+                        </div>
+                        <div class="bar-track">
+                            <div class="bar-fill {{ item.kind }}" style="width: {{ item.percent|stringformat:'s' }}%;"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </article>
+
+            <article class="report-panel">
+                <div class="panel-heading">
+                    <h2>Mensajeros</h2>
+                </div>
+                <div class="chart-list">
+                    {% for item in metrics.por_mensajero %}
+                    <div class="chart-row">
+                        <div class="chart-row-label">
+                            <span>{{ item.label }}</span>
+                            <strong>{{ item.total }}</strong>
+                        </div>
+                        <div class="bar-track">
+                            <div class="bar-fill info" style="width: {{ item.percent|stringformat:'s' }}%;"></div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>No hay datos de mensajeros.</p>
+                    {% endfor %}
+                </div>
+            </article>
+
+            <article class="report-panel">
+                <div class="panel-heading">
+                    <h2>Zonas</h2>
+                </div>
+                <div class="chart-list">
+                    {% for item in metrics.por_zona %}
+                    <div class="chart-row">
+                        <div class="chart-row-label">
+                            <span>{{ item.label }}</span>
+                            <strong>{{ item.total }}</strong>
+                        </div>
+                        <div class="bar-track">
+                            <div class="bar-fill retry" style="width: {{ item.percent|stringformat:'s' }}%;"></div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p>No hay datos de zonas.</p>
+                    {% endfor %}
+                </div>
+            </article>
+        </section>
+
+        <details class="filter-panel">
+            <summary>Cambiar filtros</summary>
+            <form method="GET" class="filter-grid">
+                <label>
+                    Desde
+                    <input class="form-control" type="date" name="desde" value="{{ request.GET.desde }}">
+                </label>
+                <label>
+                    Hasta
+                    <input class="form-control" type="date" name="hasta" value="{{ request.GET.hasta }}">
+                </label>
+                <label>
+                    Estado
+                    <select class="form-control" name="estado">
+                        <option value="">Todos</option>
+                        <option value="Pendiente" {% if request.GET.estado == "Pendiente" %}selected{% endif %}>Pendiente</option>
+                        <option value="En Ruta" {% if request.GET.estado == "En Ruta" %}selected{% endif %}>En Ruta</option>
+                        <option value="Entregado" {% if request.GET.estado == "Entregado" %}selected{% endif %}>Entregado</option>
+                        <option value="Rechazado" {% if request.GET.estado == "Rechazado" %}selected{% endif %}>Rechazado</option>
+                        <option value="Fallido" {% if request.GET.estado == "Fallido" %}selected{% endif %}>Fallido</option>
+                        <option value="Reintentado" {% if request.GET.estado == "Reintentado" %}selected{% endif %}>Reintentado</option>
+                    </select>
+                </label>
+                <label>
+                    Mensajero
+                    <select class="form-control" name="mensajero_id">
+                        <option value="">Todos</option>
+                        {% for mensajero in mensajeros %}
+                        <option value="{{ mensajero.id }}" {% if request.GET.mensajero_id == mensajero.id|stringformat:"s" %}selected{% endif %}>{{ mensajero.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label>
+                    Zona
+                    <select class="form-control" name="zona_id">
+                        <option value="">Todas</option>
+                        {% for zona in zonas %}
+                        <option value="{{ zona.id }}" {% if request.GET.zona_id == zona.id|stringformat:"s" %}selected{% endif %}>{{ zona.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <div class="filter-actions">
+                    <button class="btn btn-primary" type="submit">Aplicar</button>
+                    <a class="btn btn-secondary" href="{% url 'envios:reportes_operativos' %}">Limpiar</a>
+                </div>
+            </form>
+        </details>
+
+        <section class="report-panel">
+            <div class="panel-heading">
+                <h2>Últimos envíos</h2>
+                <a href="{% url 'envios:lista_envios' %}">Ver todos</a>
+            </div>
+            <div class="easy-table-wrap">
+                <table class="easy-table">
+                    <thead>
+                        <tr><th>Seguimiento</th><th>Estado</th><th>Mensajero</th><th>Destino</th><th>Monto</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for envio in envios %}
+                        <tr>
+                            <td><strong>{{ envio.numero_seguimiento }}</strong></td>
+                            <td>{{ envio.estado }}</td>
+                            <td>{{ envio.mensajero.nombre|default:"Sin asignar" }}</td>
+                            <td>{{ envio.destino_direccion }}</td>
+                            <td>{% if envio.monto_pago %}Bs. {{ envio.monto_pago|floatformat:2 }}{% else %}-{% endif %}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5">No hay envíos para los filtros seleccionados.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

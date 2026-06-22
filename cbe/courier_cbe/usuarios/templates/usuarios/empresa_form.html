@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }} - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+    <div class="form-page-container">
+        <h1>{{ titulo }}</h1>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-grid">
+                {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<span class="error-message">{{ field.errors.0 }}</span>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-success">💾 Guardar</button>
+                <a href="{% url 'usuarios:lista_empresas' %}" class="btn btn-secondary">↩️ Cancelar</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,126 @@
+/* forms.css */
+
+/* Estilo general para los formularios */
+form {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 10px;  /* Reducir el relleno */
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Título del formulario */
+form h1 {
+    text-align: center;
+    color: #1e2a38;
+    font-size: 22px;  /* Reducir el tamaño del título */
+    margin-bottom: 10px;  /* Reducir margen inferior */
+}
+
+/* Estilo de los campos de texto y etiquetas */
+label {
+    display: block;
+    font-size: 12px;  /* Reducir el tamaño de la fuente */
+    color: #555;
+    margin-bottom: 4px;  /* Reducir el margen entre etiqueta y campo */
+    font-weight: 600;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+    width: 100%;
+    padding: 6px;  /* Reducir el relleno */
+    margin: 4px 0 8px 0;  /* Reducir margen */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;  /* Reducir el tamaño de la fuente */
+    color: #333;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+/* Bordes azules al hacer foco */
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: #4CAF50;
+    outline: none;
+}
+
+/* Estilo de los botones */
+button,
+input[type="submit"] {
+    width: 100%;
+    padding: 8px;  /* Reducir el relleno */
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;  /* Reducir el tamaño de la fuente */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover,
+input[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+/* Estilo de los campos de error */
+input:invalid,
+textarea:invalid {
+    border-color: red;
+}
+
+input:focus:invalid,
+textarea:focus:invalid {
+    border-color: red;
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+/* Estilo de los mensajes de error */
+.error-message {
+    color: red;
+    font-size: 12px;  /* Reducir el tamaño de la fuente */
+    margin-bottom: 6px;  /* Reducir el margen */
+}
+
+/* Estilo para los elementos de selección (select) */
+select {
+    width: 100%;
+    padding: 6px;  /* Reducir el relleno */
+    margin: 4px 0 8px 0;  /* Reducir margen */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;  /* Reducir el tamaño de la fuente */
+    color: #333;
+    background-color: #fff;
+}
+
+/* Espaciado entre formularios y otros elementos */
+form .form-group {
+    margin-bottom: 8px;  /* Reducir el espacio entre cada grupo de formulario */
+}
+
+/* Estilo para los textos informativos o de ayuda */
+small {
+    font-size: 10px;  /* Reducir el tamaño de la fuente */
+    color: #888;
+}
+
+/* Estilo para el enlace de "volver" */
+a {
+    color: #4CAF50;
+    font-size: 12px;  /* Reducir el tamaño de la fuente */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}

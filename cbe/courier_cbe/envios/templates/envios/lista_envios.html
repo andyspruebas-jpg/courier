@@ -1,0 +1,162 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Envíos - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pagination.css' %}">
+</head>
+
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <div class="page-container">
+        <h1>{% if es_cliente %}Mis envíos{% else %}Lista de Envíos{% endif %}</h1>
+
+        <!-- Barra de acciones: Botón agregar + Búsqueda -->
+        <div class="actions-bar">
+            {% if es_cliente %}
+            <a href="{% url 'envios:solicitar_envio' %}" class="btn-add">
+                Solicitar envío
+            </a>
+            <a href="{% url 'envios:seguimiento_envio' %}" class="btn-add">
+                Buscar guía
+            </a>
+            {% else %}
+            <a href="{% url 'envios:crear_envio' %}" class="btn-add">
+                ➕ Crear nuevo envío
+            </a>
+            <a href="{% url 'envios:reportes_operativos' %}" class="btn-add">
+                📊 Reportes
+            </a>
+            {% endif %}
+
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" class="search-input"
+                    placeholder="Buscar por código, destinatario o estado..." value="{{ search_query }}"
+                    autocomplete="off">
+                <span class="search-loader" id="searchLoader">⏳</span>
+            </div>
+        </div>
+
+        <div id="tableContainer">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Remitente</th>
+                        <th>Destinatario</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    {% for envio in page_obj %}
+                    <tr>
+                        <td>{{ envio.numero_seguimiento }}</td>
+                        <td>{{ envio.remitente_nombre|default:"N/A" }}</td>
+                        <td>{{ envio.destinatario_nombre|default:"N/A" }}</td>
+                        <td>
+                            <span
+                                class="badge badge-{% if envio.estado == 'Entregado' %}success{% elif envio.estado == 'En Ruta' or envio.estado == 'Reintentado' %}info{% elif envio.estado == 'Pendiente' %}warning{% else %}danger{% endif %}">
+                                {% if es_cliente %}{{ envio.estado_publico }}{% else %}{{ envio.estado }}{% endif %}
+                            </span>
+                        </td>
+                        <td>{{ envio.creado_en|date:"d/m/Y" }}</td>
+                        <td>
+                            <a href="{% url 'envios:ver_envio' envio.id %}">Guía</a> |
+                            <a href="{% url 'envios:seguimiento_detalle' envio.numero_seguimiento %}">Seguimiento</a>{% if not es_cliente %} |
+                            <a href="{% url 'envios:editar_envio' envio.id %}">Editar</a> |
+                            <a href="{% url 'envios:reasignar_envio' envio.id %}">Reasignar</a> |
+                            <a href="{% url 'envios:eliminar_envio' envio.id %}">Eliminar</a>{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: var(--color-text-lighter);">
+                            {% if search_query %}
+                            No se encontraron envíos que coincidan con "{{ search_query }}"
+                            {% else %}
+                            No hay envíos registrados
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Paginación -->
+            {% if page_obj.has_other_pages %}
+            <div class="pagination" id="paginationContainer">
+                <span class="pagination-info">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    ({{ page_obj.paginator.count }} resultados)
+                </span>
+
+                {% if page_obj.has_previous %}
+                <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}"
+                    class="pagination-btn">⏮️</a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                    class="pagination-btn">◀️</a>
+                {% else %}
+                <button class="pagination-btn" disabled>⏮️</button>
+                <button class="pagination-btn" disabled>◀️</button>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="pagination-btn active">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <a
+                    href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                    class="pagination-btn">{{ num }}</a>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                        class="pagination-btn">▶️</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                        class="pagination-btn">⏭️</a>
+                    {% else %}
+                    <button class="pagination-btn" disabled>▶️</button>
+                    <button class="pagination-btn" disabled>⏭️</button>
+                    {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Búsqueda en tiempo real
+        const searchInput = document.getElementById('searchInput');
+        const searchLoader = document.getElementById('searchLoader');
+        let searchTimeout;
+
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            searchLoader.classList.add('active');
+
+            searchTimeout = setTimeout(() => {
+                const searchValue = this.value;
+                const url = new URL(window.location.href);
+
+                if (searchValue) {
+                    url.searchParams.set('search', searchValue);
+                } else {
+                    url.searchParams.delete('search');
+                }
+                url.searchParams.set('page', '1');
+
+                window.location.href = url.toString();
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>

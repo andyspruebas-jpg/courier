@@ -1,0 +1,669 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensajeros en Vivo — CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <style>
+        .page-header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap; }
+        .page-header h1 { margin:0; font-size:1.5rem; font-weight:700; }
+
+        .live-badge {
+            display:inline-flex; align-items:center; gap:6px;
+            padding:4px 12px; background:rgba(34,197,94,.12);
+            border:1px solid rgba(34,197,94,.35); border-radius:999px;
+            font-size:.75rem; font-weight:600; color:#22c55e; letter-spacing:.04em;
+        }
+        .live-badge::before { content:''; width:7px; height:7px; border-radius:50%; background:#22c55e; animation:pulse-dot 1.6s ease-in-out infinite; }
+        @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.5)} }
+
+        /* stats */
+        .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-bottom:14px; }
+        .stat-card { background:var(--color-bg-secondary); border:1px solid var(--color-bg-tertiary); border-radius:12px; padding:13px 16px; }
+        .stat-card .stat-value { font-size:1.75rem; font-weight:800; line-height:1; }
+        .stat-card .stat-label { font-size:.7rem; color:var(--color-text-lighter); text-transform:uppercase; letter-spacing:.05em; margin-top:2px; }
+        .stat-card.t  .stat-value { color:var(--color-primary-light); }
+        .stat-card.l  .stat-value { color:#22c55e; }
+        .stat-card.o  .stat-value { color:#f59e0b; }
+        .stat-card.r  .stat-value { color:var(--color-secondary); }
+
+        /* filtros */
+        .filtros-bar {
+            display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+            background:var(--color-bg-secondary); border:1px solid var(--color-bg-tertiary);
+            border-radius:12px; padding:10px 14px; margin-bottom:12px;
+        }
+        .filtros-bar label { display:flex; align-items:center; gap:6px; font-size:.82rem; font-weight:500; color:var(--color-text-light); }
+        .filtros-bar select { min-height:34px; padding:4px 10px; font-size:.82rem; border-radius:8px; background:var(--color-bg-tertiary); border:1px solid rgba(255,255,255,.08); color:var(--color-text); outline:none; transition:border-color .2s; }
+        .filtros-bar select:focus { border-color:var(--color-primary); }
+
+        .toggle-disp { display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; padding:4px 12px; border-radius:8px; background:var(--color-bg-tertiary); border:1px solid rgba(255,255,255,.08); font-size:.82rem; font-weight:500; color:var(--color-text-light); }
+        .toggle-disp input { display:none; }
+        .toggle-track { width:32px; height:18px; background:var(--color-bg-secondary); border-radius:999px; border:1px solid rgba(255,255,255,.15); position:relative; transition:background .2s; flex-shrink:0; }
+        .toggle-thumb { position:absolute; top:2px; left:2px; width:12px; height:12px; border-radius:50%; background:var(--color-text-lighter); transition:transform .2s,background .2s; }
+        .toggle-disp input:checked~.toggle-track { background:rgba(34,197,94,.3); border-color:#22c55e; }
+        .toggle-disp input:checked~.toggle-track .toggle-thumb { transform:translateX(14px); background:#22c55e; }
+
+        .filtros-bar .sep { width:1px; height:24px; background:rgba(255,255,255,.1); }
+        #ts { margin-left:auto; font-size:.72rem; color:var(--color-text-lighter); }
+
+        /* main grid */
+        .main-grid { display:grid; grid-template-columns:280px 1fr; gap:12px; align-items:start; }
+        @media(max-width:860px){ .main-grid{grid-template-columns:1fr;} }
+
+        /* sidebar */
+        .sidebar { display:flex; flex-direction:column; gap:7px; }
+        .sidebar-hdr { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--color-text-lighter); padding-bottom:3px; }
+        .sidebar-scroll { display:flex; flex-direction:column; gap:5px; max-height:510px; overflow-y:auto; padding-right:2px; }
+        .sidebar-scroll::-webkit-scrollbar{width:3px;} .sidebar-scroll::-webkit-scrollbar-thumb{background:var(--color-bg-tertiary);border-radius:3px;}
+
+        .mc { background:var(--color-bg-secondary); border:1px solid var(--color-bg-tertiary); border-radius:11px; padding:9px 11px; cursor:pointer; display:flex; align-items:center; gap:9px; transition:border-color .15s,transform .15s,opacity .2s; }
+        .mc:hover { border-color:var(--color-primary); transform:translateX(3px); }
+        .mc.active { border-color:var(--color-secondary); background:rgba(20,184,166,.09); box-shadow:0 0 0 1px var(--color-secondary) inset; }
+        .mc.hidden { opacity:.22; pointer-events:none; }
+
+        .avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--color-primary),var(--color-secondary)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.8rem; color:#fff; flex-shrink:0; overflow:hidden; }
+        .avatar img { width:100%; height:100%; object-fit:cover; }
+        .mc-body { flex:1; min-width:0; }
+        .mc-name { font-weight:600; font-size:.83rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .mc-meta { font-size:.68rem; color:var(--color-text-lighter); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .mc-badges { display:flex; flex-direction:column; gap:3px; align-items:flex-end; flex-shrink:0; }
+
+        .badge { font-size:.6rem; font-weight:700; padding:2px 6px; border-radius:999px; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; }
+        .badge.libre    { background:rgba(34,197,94,.15); color:#22c55e; border:1px solid rgba(34,197,94,.3); }
+        .badge.ocupado  { background:rgba(245,158,11,.12); color:#f59e0b; border:1px solid rgba(245,158,11,.3); }
+        .badge.dentro   { background:rgba(20,184,166,.15); color:#14b8a6; border:1px solid rgba(20,184,166,.3); }
+        .badge.fuera    { background:rgba(239,68,68,.12); color:#ef4444; border:1px solid rgba(239,68,68,.25); }
+
+        /* right panel */
+        .right-panel { display:flex; flex-direction:column; gap:10px; }
+        .map-card { background:var(--color-bg-secondary); border:1px solid var(--color-bg-tertiary); border-radius:16px; overflow:hidden; }
+        #map { height:490px; width:100%; display:block; }
+
+        /* ruta panel */
+        #ruta-panel { background:var(--color-bg-secondary); border:1px solid var(--color-bg-tertiary); border-radius:14px; padding:14px 18px; display:none; }
+        #ruta-panel.visible { display:block; }
+        .ruta-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+        .ruta-hdr h3 { margin:0; font-size:.98rem; font-weight:700; }
+        .chips { display:flex; gap:7px; flex-wrap:wrap; }
+        .chip { display:inline-flex; align-items:center; gap:4px; background:var(--color-bg-tertiary); border-radius:7px; padding:4px 10px; font-size:.78rem; font-weight:600; }
+        .chip .cl { color:var(--color-text-lighter); font-weight:500; font-size:.68rem; }
+        .chip.g { border:1px solid rgba(20,184,166,.3); } .chip.g .cv { color:var(--color-secondary); }
+        .chip.b { border:1px solid rgba(99,102,241,.3); } .chip.b .cv { color:var(--color-primary-light); }
+
+        .paradas-list { display:flex; flex-direction:column; gap:5px; }
+        .parada { display:flex; align-items:center; gap:9px; padding:7px 9px; background:var(--color-bg-tertiary); border-radius:8px; font-size:.78rem; }
+        .pn { width:21px; height:21px; border-radius:50%; background:var(--color-primary); color:#fff; font-size:.68rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .pb { flex:1; min-width:0; }
+        .pd { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--color-text-light); }
+        .pe { font-size:.65rem; color:var(--color-text-lighter); margin-top:1px; }
+        .pt { font-size:.6rem; padding:1px 5px; border-radius:999px; font-weight:700; flex-shrink:0; }
+        .pt.r { background:rgba(99,102,241,.2); color:#818cf8; }
+        .pt.e { background:rgba(20,184,166,.2); color:#14b8a6; }
+
+        .no-ruta { text-align:center; color:var(--color-text-lighter); padding:18px; font-size:.83rem; }
+
+        /* zona info */
+        #zona-banner { background:rgba(99,102,241,.07); border:1px solid rgba(99,102,241,.2); border-radius:10px; padding:7px 13px; font-size:.78rem; color:var(--color-primary-lighter); display:none; align-items:center; gap:8px; }
+        #zona-banner.visible { display:flex; }
+
+        /* ML */
+        #ml-banner { background:rgba(99,102,241,.07); border:1px solid rgba(99,102,241,.2); border-radius:10px; padding:7px 13px; font-size:.77rem; color:var(--color-primary-lighter); margin-bottom:10px; }
+
+        .empty-state { text-align:center; color:var(--color-text-lighter); padding:36px 16px; font-size:.85rem; }
+    </style>
+</head>
+<body>
+{% include 'includes/navbar.html' %}
+<div class="container">
+
+    <div class="page-header">
+        <h1>Mensajeros en Vivo</h1>
+        <span class="live-badge">EN VIVO</span>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card t"><span class="stat-value" id="s-t">—</span><span class="stat-label">Total</span></div>
+        <div class="stat-card l"><span class="stat-value" id="s-l">—</span><span class="stat-label">Disponibles</span></div>
+        <div class="stat-card o"><span class="stat-value" id="s-o">—</span><span class="stat-label">Ocupados</span></div>
+        <div class="stat-card r"><span class="stat-value" id="s-r">—</span><span class="stat-label">Con ruta</span></div>
+    </div>
+
+    <div id="ml-banner">🤖 <span id="ml-info">Verificando ML…</span></div>
+
+    <div class="filtros-bar">
+        <label>Zona
+            <select id="f-zona">
+                <option value="">Todas las zonas</option>
+                {% for zona in zonas %}
+                <option value="{{ zona.id }}">{{ zona.nombre }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <div class="sep"></div>
+        <label class="toggle-disp">
+            <input id="f-disp" type="checkbox">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            Solo disponibles
+        </label>
+        <span id="ts"></span>
+    </div>
+
+    <div id="zona-banner">📍 <span id="zona-info"></span></div>
+    <br>
+
+    <div class="main-grid">
+        <div class="sidebar">
+            <div class="sidebar-hdr">Mensajeros (<span id="cnt">0</span>)</div>
+            <div class="sidebar-scroll" id="lista"></div>
+        </div>
+
+        <div class="right-panel">
+            <div class="map-card"><div id="map"></div></div>
+            <div id="ruta-panel">
+                <div class="ruta-hdr">
+                    <h3 id="ruta-titulo"></h3>
+                    <div class="chips">
+                        <div class="chip g"><span class="cl">Tiempo</span><span class="cv" id="ruta-dur">—</span></div>
+                        <div class="chip b"><span class="cl">Paradas</span><span class="cv" id="ruta-cnt">—</span></div>
+                    </div>
+                </div>
+                <div class="paradas-list" id="paradas"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+/* ─── Datos del servidor ─────────────────────────────── */
+const INITIAL = JSON.parse('{{ mensajeros_json|escapejs }}');
+const ZONAS_GEO = JSON.parse('{{ zonas_geo_json|escapejs }}');
+
+/* ─── Estado ────────────────────────────────────────── */
+let map;
+let zonePolys     = [];   // polígonos de zona dibujados actualmente
+let markers       = {};   // id → Marker (pin mensajero)
+let infoWindows   = {};   // id → InfoWindow
+let routePoly     = null;
+let routeMks      = [];
+let selectedId    = null;
+let soloMode      = false;
+let routeTimer    = null;
+let lastData      = {};   // id → datos anteriores para diff suave
+const retriedMensajeros = new Set(); // IDs que ya intentamos regenerar (evita bucle infinito)
+
+/* ─── Init mapa ─────────────────────────────────────── */
+function initMap() {
+    map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 13,
+        center: { lat: -16.4897, lng: -68.1193 },
+        mapTypeControl: false, streetViewControl: false,
+        styles: [
+            {elementType:"geometry",stylers:[{color:"#1d1d2e"}]},
+            {elementType:"labels.text.stroke",stylers:[{color:"#1d1d2e"}]},
+            {elementType:"labels.text.fill",stylers:[{color:"#9fa8c7"}]},
+            {featureType:"road",elementType:"geometry",stylers:[{color:"#2d2d42"}]},
+            {featureType:"road.highway",elementType:"geometry",stylers:[{color:"#3d3d5c"}]},
+            {featureType:"water",elementType:"geometry",stylers:[{color:"#0f0f1a"}]},
+            {featureType:"poi",elementType:"labels",stylers:[{visibility:"off"}]},
+            {featureType:"transit",elementType:"labels",stylers:[{visibility:"off"}]},
+            {featureType:"administrative.locality",elementType:"labels.text.fill",stylers:[{color:"#818cf8"}]},
+        ]
+    });
+
+    document.getElementById("f-zona").addEventListener("change", onZonaChange);
+    document.getElementById("f-disp").addEventListener("change", () => fetchMensajeros());
+
+    applyData(INITIAL);
+    fetchMensajeros();
+
+    // Posiciones en tiempo real cada 4s, lista completa cada 10s
+    setInterval(fetchMensajeros, 10000);
+    setInterval(fetchPositions, 4000);
+
+    verificarML();
+}
+
+/* ─── Helpers ───────────────────────────────────────── */
+function ini(nombre) {
+    return nombre.split(" ").slice(0,2).map(p=>p[0]||"").join("").toUpperCase();
+}
+function minFmt(min) {
+    if (min == null) return "—";
+    const h = Math.floor(min/60), m = Math.round(min%60);
+    return h > 0 ? `${h}h ${m}min` : `${m} min`;
+}
+function pointInPoly(lat, lng, poly) {
+    let inside = false, j = poly.length - 1;
+    for (let i = 0; i < poly.length; i++) {
+        const xi = poly[i][0], yi = poly[i][1];
+        const xj = poly[j][0], yj = poly[j][1];
+        if (((yi > lng) !== (yj > lng)) && (lat < (xj - xi) * (lng - yi) / (yj - yi) + xi))
+            inside = !inside;
+        j = i;
+    }
+    return inside;
+}
+
+/* ─── Polígonos de zona ───────────────────────────────── */
+function clearZonePolys() {
+    zonePolys.forEach(p => p.setMap(null));
+    zonePolys = [];
+}
+function drawZones(zoneIds, fit) {
+    clearZonePolys();
+    const bounds = new google.maps.LatLngBounds();
+    let any = false;
+    (zoneIds || []).forEach(zid => {
+        const zd = ZONAS_GEO.find(z => z.id === Number(zid));
+        if (zd && zd.area && zd.area.length) {
+            const path = zd.area.map(c => ({ lat: parseFloat(c[0]), lng: parseFloat(c[1]) }));
+            zonePolys.push(new google.maps.Polygon({
+                map, paths: path,
+                strokeColor: "#818cf8", strokeOpacity: 0.9, strokeWeight: 2,
+                fillColor: "#6366f1", fillOpacity: 0.12,
+            }));
+            path.forEach(p => bounds.extend(p));
+            any = true;
+        }
+    });
+    if (fit && any) map.fitBounds(bounds, { top:30, right:30, bottom:30, left:30 });
+    return any ? bounds : null;
+}
+
+/* ─── Cambio de zona: limpiar ruta y deseleccionar ─────── */
+function onZonaChange() {
+    // Al cambiar de zona, descartar cualquier ruta/selección previa
+    limpiarRuta();
+    clearInterval(routeTimer);
+    selectedId = null; soloMode = false;
+    retriedMensajeros.clear();
+    document.getElementById("ruta-panel").classList.remove("visible");
+    document.querySelectorAll(".mc.active").forEach(c => c.classList.remove("active"));
+    document.querySelectorAll(".mc.hidden").forEach(c => c.classList.remove("hidden"));
+    Object.values(markers).forEach(mk => mk.setVisible(true));
+    Object.values(infoWindows).forEach(iw => iw.close());
+    document.getElementById("zona-banner").classList.remove("visible");
+
+    const zonaId = parseInt(document.getElementById("f-zona").value);
+    if (zonaId) drawZones([zonaId], true);
+    else clearZonePolys();
+
+    fetchMensajeros();
+}
+
+/* ─── Aplicar datos al mapa y sidebar ────────────────── */
+function applyData(mensajeros) {
+    const lista = document.getElementById("lista");
+    const zonaId = parseInt(document.getElementById("f-zona").value) || null;
+    const zonaDef = zonaId ? ZONAS_GEO.find(z => z.id === zonaId) : null;
+
+    // ─ Stats
+    let total = mensajeros.length, libre = 0, ocup = 0;
+    mensajeros.forEach(m => m.disponible ? libre++ : ocup++);
+    document.getElementById("s-t").textContent = total;
+    document.getElementById("s-l").textContent = libre;
+    document.getElementById("s-o").textContent = ocup;
+    document.getElementById("cnt").textContent  = total;
+    document.getElementById("ts").textContent   = `Actualizado ${new Date().toLocaleTimeString("es-BO")}`;
+
+    // IDs activos en esta actualización
+    const activeIds = new Set(mensajeros.map(m => m.id));
+
+    // Eliminar markers de mensajeros que ya no están
+    Object.keys(markers).forEach(id => {
+        if (!activeIds.has(Number(id))) {
+            markers[id].setMap(null);
+            if (infoWindows[id]) infoWindows[id].close();
+            delete markers[id];
+            delete infoWindows[id];
+            delete lastData[id];
+        }
+    });
+
+    // Limpiar sidebar completamente para re-renderizar
+    lista.innerHTML = "";
+    if (!mensajeros.length) {
+        lista.innerHTML = '<div class="empty-state">Sin mensajeros para los filtros.</div>';
+    }
+
+    mensajeros.forEach(m => {
+        const lat = Number(m.lat ?? m.latitud);
+        const lng = Number(m.lng ?? m.longitud);
+        const disp  = Boolean(m.disponible);
+        const isSelected = m.id === selectedId;
+
+        // ─ Zona in/out check
+        let enZona = null;
+        if (zonaDef && zonaDef.area && zonaDef.area.length && Number.isFinite(lat)) {
+            enZona = pointInPoly(lat, lng, zonaDef.area);
+        }
+
+        // ─ Sidebar card
+        const card = document.createElement("div");
+        card.className = "mc" + (isSelected ? " active" : "") + (soloMode && !isSelected ? " hidden" : "");
+        card.dataset.id = m.id;
+
+        const lastSeen = m.last_seen
+            ? new Date(m.last_seen).toLocaleTimeString("es-BO",{hour:"2-digit",minute:"2-digit"})
+            : "sin señal";
+        const meta = [m.zona || m.vehiculo || "", lastSeen].filter(Boolean).join(" · ");
+
+        let badgeZona = "";
+        if (enZona === true)  badgeZona = `<span class="badge dentro">Dentro</span>`;
+        if (enZona === false) badgeZona = `<span class="badge fuera">Fuera</span>`;
+
+        card.innerHTML = `
+            <div class="avatar">${m.foto_url ? `<img src="${m.foto_url}">` : ini(m.nombre)}</div>
+            <div class="mc-body">
+                <div class="mc-name">${m.nombre}</div>
+                <div class="mc-meta">${meta}</div>
+            </div>
+            <div class="mc-badges">
+                <span class="badge ${disp?'libre':'ocupado'}">${disp?'Libre':'Ocupado'}</span>
+                ${badgeZona}
+            </div>`;
+
+        card.addEventListener("click", () => clickMensajero(m.id, m.nombre));
+        lista.appendChild(card);
+
+        // ─ Marker: actualizar suave o crear nuevo
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+        const pos = { lat, lng };
+
+        if (markers[m.id]) {
+            // Solo actualizar posición suavemente
+            markers[m.id].setPosition(pos);
+            markers[m.id].setVisible(!soloMode || isSelected);
+        } else {
+            // Crear nuevo marker
+            const mk = new google.maps.Marker({
+                map, position: pos, title: m.nombre,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: disp ? "#22c55e" : "#818cf8",
+                    fillOpacity: 1,
+                    strokeColor: disp ? "#16a34a" : "#6366f1",
+                    strokeWeight: 2, scale: 10,
+                },
+                label: { text: ini(m.nombre), fontSize:"9px", fontWeight:"bold", color:"#fff" },
+                animation: google.maps.Animation.DROP,
+                visible: !soloMode || isSelected,
+            });
+
+            const iw = new google.maps.InfoWindow({
+                content: `<div style="font-family:Inter,sans-serif;padding:4px 0;min-width:140px">
+                    <b>${m.nombre}</b><br>
+                    ${m.zona ? `<span style="font-size:12px;color:#666">Zona: ${m.zona}</span><br>` : ""}
+                    ${m.vehiculo ? `<span style="font-size:12px;color:#666">${m.vehiculo}</span><br>` : ""}
+                    <span style="font-size:11px;color:#999">Señal: ${lastSeen}</span><br>
+                    <span style="font-size:11px;color:#818cf8;cursor:pointer" onclick="clickMensajero(${m.id},'${m.nombre.replace("'","\\'")}')">👉 Ver ruta</span>
+                </div>`
+            });
+
+            mk.addListener("click", () => {
+                Object.values(infoWindows).forEach(x=>x.close());
+                iw.open(map, mk);
+                clickMensajero(m.id, m.nombre);
+            });
+
+            markers[m.id] = mk;
+            infoWindows[m.id] = iw;
+        }
+
+        lastData[m.id] = m;
+    });
+
+    // Zona banner
+    if (zonaId && mensajeros.length > 0) {
+        const dentro = mensajeros.filter(m => {
+            if (!zonaDef?.area?.length) return false;
+            const lat = Number(m.lat ?? m.latitud);
+            const lng = Number(m.lng ?? m.longitud);
+            return Number.isFinite(lat) && pointInPoly(lat, lng, zonaDef.area);
+        }).length;
+        const fuera = mensajeros.length - dentro;
+        const nombre = document.querySelector(`#f-zona option:checked`)?.textContent || "";
+        document.getElementById("zona-info").textContent =
+            `${nombre} — ${dentro} mensajero${dentro!==1?"s":""} dentro · ${fuera} fuera`;
+        document.getElementById("zona-banner").classList.add("visible");
+    } else {
+        document.getElementById("zona-banner").classList.remove("visible");
+    }
+}
+
+/* ─── Click en mensajero ────────────────────────────── */
+function clickMensajero(id, nombre) {
+    if (selectedId === id && soloMode) {
+        // Deseleccionar → volver a mostrar todos
+        retriedMensajeros.delete(id); // permitir re-optimizar si se vuelve a seleccionar
+        selectedId = null; soloMode = false;
+        Object.values(markers).forEach(mk => mk.setVisible(true));
+        document.querySelectorAll(".mc.hidden").forEach(c=>c.classList.remove("hidden"));
+        document.querySelectorAll(".mc.active").forEach(c=>c.classList.remove("active"));
+        limpiarRuta();
+        document.getElementById("ruta-panel").classList.remove("visible");
+        clearInterval(routeTimer);
+
+        // Restaurar el polígono del filtro de zona (si lo hay)
+        const fz = parseInt(document.getElementById("f-zona").value);
+        if (fz) drawZones([fz], false); else clearZonePolys();
+
+        // Volver a mostrar todos los pins
+        const bnd = new google.maps.LatLngBounds();
+        Object.values(markers).forEach(mk => bnd.extend(mk.getPosition()));
+        if (!bnd.isEmpty()) map.fitBounds(bnd);
+        return;
+    }
+
+    selectedId = id; soloMode = true;
+
+    // Ocultar todos excepto el seleccionado
+    Object.entries(markers).forEach(([mid, mk]) => mk.setVisible(Number(mid) === id));
+    document.querySelectorAll(".mc").forEach(c => {
+        const cid = Number(c.dataset.id);
+        c.classList.toggle("active", cid === id);
+        c.classList.toggle("hidden", cid !== id);
+    });
+
+    // Dibujar TODAS las zonas que cubre este mensajero (así la ruta nunca queda fuera del área)
+    const md = lastData[id];
+    if (md && md.zona_ids && md.zona_ids.length) drawZones(md.zona_ids, false);
+
+    Object.values(infoWindows).forEach(iw=>iw.close());
+    if (markers[id]) {
+        infoWindows[id]?.open(map, markers[id]);
+        map.panTo(markers[id].getPosition());
+        markers[id].setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(() => markers[id]?.setAnimation(null), 1500);
+    }
+
+    // Cargar ruta inmediatamente y programar refresco
+    fetchRuta(id, nombre || "Mensajero");
+    clearInterval(routeTimer);
+    routeTimer = setInterval(() => fetchRuta(id, nombre || "Mensajero"), 10000);
+}
+
+/* ─── Limpiar ruta activa ───────────────────────────── */
+function limpiarRuta() {
+    if (routePoly) { routePoly.setMap(null); routePoly = null; }
+    routeMks.forEach(mk => mk.setMap(null));
+    routeMks = [];
+}
+
+/* ─── Fetch y dibujar ruta ──────────────────────────── */
+async function fetchRuta(mensajeroId, nombre) {
+    try {
+        const r = await fetch(`/rutas/api/ruta-detalle/${mensajeroId}/`, {headers:{Accept:"application/json"}});
+        if (!r.ok) { mostrarSinRuta(nombre); return; }
+        dibujarRuta(await r.json(), nombre);
+    } catch(e) { console.warn("Error ruta:", e); }
+}
+
+function mostrarGenerando(nombre) {
+    limpiarRuta();
+    const panel = document.getElementById("ruta-panel");
+    panel.classList.add("visible");
+    document.getElementById("ruta-titulo").textContent = `Ruta de ${nombre}`;
+    document.getElementById("ruta-dur").textContent = "—";
+    document.getElementById("ruta-cnt").textContent = "—";
+    document.getElementById("paradas").innerHTML = `
+        <div class="no-ruta" style="color:var(--color-primary-light)">
+            <div style="margin-bottom:8px">🤖 Optimizando ruta con ML + Google Maps…</div>
+            <small style="opacity:.7">Calculando orden de paradas y trazando ruta por calles reales</small>
+        </div>`;
+}
+
+async function regenerarRuta(mensajeroId, nombre) {
+    retriedMensajeros.add(mensajeroId); // marcar antes de llamar para no re-entrar
+    mostrarGenerando(nombre);
+    try {
+        const r = await fetch(`/rutas/api/optimizar/${mensajeroId}/`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+        });
+        if (r.ok) {
+            await fetchRuta(mensajeroId, nombre);
+        } else {
+            console.warn("Error al optimizar ruta:", r.status);
+            mostrarSinRuta(nombre);
+        }
+    } catch(e) {
+        console.warn("Error regenerarRuta:", e);
+        mostrarSinRuta(nombre);
+    }
+}
+
+function dibujarRuta(data, nombre) {
+    limpiarRuta();
+    const encoded = data.polyline_algoritmo || data.polyline_google || "";
+    const envios  = data.envios || [];
+
+    if (!encoded) { mostrarSinRuta(nombre); return; }
+
+    const path = google.maps.geometry.encoding.decodePath(encoded);
+
+    // Polilínea con < 5 puntos = línea recta (Google Directions falló al generar).
+    // Auto-regenerar con ML + Google Maps una sola vez por mensajero.
+    if (path.length < 5 && selectedId && !retriedMensajeros.has(selectedId)) {
+        regenerarRuta(selectedId, nombre);
+        return;
+    }
+
+    routePoly = new google.maps.Polyline({
+        map, path,
+        strokeColor:"#14b8a6", strokeOpacity:.9, strokeWeight:4,
+        icons:[{ icon:{ path:google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale:3, fillColor:"#14b8a6", fillOpacity:1, strokeColor:"#0d9488", strokeWeight:1 }, offset:"50%" }]
+    });
+
+    envios.forEach(e => {
+        const lat = Number(e.lat), lng = Number(e.lng);
+        if (!Number.isFinite(lat) || lat === 0) return;
+        const isRecojo = (e.tipo||"").toLowerCase() === "recojo";
+        const mk = new google.maps.Marker({
+            map, position:{lat,lng},
+            icon:{ path:google.maps.SymbolPath.CIRCLE, fillColor:isRecojo?"#818cf8":"#f59e0b", fillOpacity:1, strokeColor:isRecojo?"#6366f1":"#d97706", strokeWeight:2, scale:10 },
+            label:{ text:String(e.orden||"?"), fontSize:"9px", fontWeight:"bold", color:"#fff" },
+            zIndex:10
+        });
+        const iw = new google.maps.InfoWindow({ content:`<div style="font-family:Inter,sans-serif;padding:4px 0;min-width:150px"><b>Parada ${e.orden} — ${e.tipo}</b><br><span style="font-size:12px;color:#555">${e.direccion||"Sin dirección"}</span>${e.destinatario_nombre?`<br><span style="font-size:11px;color:#777">Para: ${e.destinatario_nombre}</span>`:""}${e.eta_min!=null?`<br><span style="font-size:11px;color:#14b8a6">ETA: ${minFmt(e.eta_min)}</span>`:""}</div>` });
+        mk.addListener("click", ()=>iw.open(map,mk));
+        routeMks.push(mk);
+    });
+
+    // Panel
+    const panel = document.getElementById("ruta-panel");
+    panel.classList.add("visible");
+    document.getElementById("ruta-titulo").textContent = `Ruta de ${nombre}`;
+    document.getElementById("ruta-dur").textContent = minFmt(data.duracion_algoritmo || data.duracion_google);
+    document.getElementById("ruta-cnt").textContent = envios.length;
+
+    const pList = document.getElementById("paradas");
+    pList.innerHTML = "";
+    if (!envios.length) {
+        pList.innerHTML = '<div class="no-ruta">Sin paradas en esta ruta.</div>';
+    } else {
+        [...envios].sort((a,b)=>(a.orden||0)-(b.orden||0)).forEach(e => {
+            const isR = (e.tipo||"").toLowerCase()==="recojo";
+            const d = document.createElement("div"); d.className = "parada";
+            d.innerHTML = `<div class="pn">${e.orden||"?"}</div><div class="pb"><div class="pd">${e.direccion||"Sin dirección"}</div><div class="pe">${e.destinatario_nombre?e.destinatario_nombre+" · ":""}${e.eta_min!=null?"ETA "+minFmt(e.eta_min):"sin ETA"}</div></div><span class="pt ${isR?'r':'e'}">${e.tipo}</span>`;
+            pList.appendChild(d);
+        });
+    }
+
+    if (path.length) {
+        const rb = new google.maps.LatLngBounds();
+        path.forEach(p=>rb.extend(p));
+        map.fitBounds(rb, {top:40,right:40,bottom:40,left:40});
+    }
+
+    document.getElementById("s-r").textContent = "1";
+}
+
+function mostrarSinRuta(nombre) {
+    limpiarRuta();
+    const panel = document.getElementById("ruta-panel");
+    panel.classList.add("visible");
+    document.getElementById("ruta-titulo").textContent = `${nombre} — sin ruta activa`;
+    document.getElementById("ruta-dur").textContent = "—";
+    document.getElementById("ruta-cnt").textContent = "0";
+    document.getElementById("paradas").innerHTML = `<div class="no-ruta">No tiene ruta generada.<br><small>Genérala desde la sección Rutas.</small></div>`;
+}
+
+/* ─── Fetch lista completa (cada 10s) ─────────────────── */
+async function fetchMensajeros() {
+    const params = new URLSearchParams();
+    const zona = document.getElementById("f-zona").value;
+    const disp = document.getElementById("f-disp").checked;
+    if (zona) params.set("zona_id", zona);
+    if (disp) params.set("solo_disponibles","1");
+    try {
+        const r = await fetch(`/usuarios/mensajeros-json/?${params}`, {headers:{Accept:"application/json"}});
+        if (!r.ok) return;
+        applyData(await r.json());
+    } catch(e) { console.warn("Error mensajeros:", e); }
+}
+
+/* ─── Fetch solo posiciones (cada 4s) ─────────────────── */
+async function fetchPositions() {
+    const params = new URLSearchParams();
+    const zona = document.getElementById("f-zona").value;
+    const disp = document.getElementById("f-disp").checked;
+    if (zona) params.set("zona_id", zona);
+    if (disp) params.set("solo_disponibles","1");
+    try {
+        const r = await fetch(`/usuarios/mensajeros-json/?${params}`, {headers:{Accept:"application/json"}});
+        if (!r.ok) return;
+        const data = await r.json();
+        // Solo actualizar posiciones de markers existentes (sin re-renderizar sidebar)
+        data.forEach(m => {
+            const lat = Number(m.lat ?? m.latitud);
+            const lng = Number(m.lng ?? m.longitud);
+            if (!Number.isFinite(lat) || !markers[m.id]) return;
+            markers[m.id].setPosition({lat, lng});
+        });
+        document.getElementById("ts").textContent = `Actualizado ${new Date().toLocaleTimeString("es-BO")}`;
+    } catch(e) {}
+}
+
+/* ─── ML status ─────────────────────────────────────── */
+async function verificarML() {
+    try {
+        const r = await fetch("/rutas/api/rutas-json/", {headers:{Accept:"application/json"}});
+        if (!r.ok) return;
+        const rutas = await r.json();
+        const conReal = rutas.filter(x => x.duracion_real && x.duracion_real > 0).length;
+        document.getElementById("ml-info").textContent = conReal >= 50
+            ? `✅ ML activo — KMeans + clasificador de retraso con ${conReal} rutas reales`
+            : `🔄 ML parcial — KMeans activo · Clasificador de retraso: ${conReal}/50 rutas (${Math.round(conReal/50*100)}% listo)`;
+    } catch(e) {}
+}
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&libraries=geometry&callback=initMap" async defer></script>
+</body>
+</html>

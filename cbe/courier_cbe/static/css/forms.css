@@ -1,0 +1,258 @@
+/* Estilos para formularios de edición/creación */
+
+.form-page-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(99, 102, 241, 0.2);
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.form-page-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 1rem;
+    padding: 2px;
+    background: linear-gradient(135deg, #6366f1 0%, #14b8a6 50%, #6366f1 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.form-page-container h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    background: linear-gradient(135deg, #818cf8 0%, #14b8a6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.form-page-container h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: var(--color-gray-800);
+    font-size: 1.25rem;
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Grupos de formulario mejorados */
+.form-page-container .form-group {
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.form-page-container label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--color-gray-700);
+    font-size: 0.95rem;
+}
+
+.form-page-container label.required::after {
+    content: ' *';
+    color: var(--color-danger);
+}
+
+.form-page-container input[type="text"],
+.form-page-container input[type="email"],
+.form-page-container input[type="password"],
+.form-page-container input[type="number"],
+.form-page-container input[type="tel"],
+.form-page-container input[type="date"],
+.form-page-container input[type="time"],
+.form-page-container input[type="datetime-local"],
+.form-page-container textarea,
+.form-page-container select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--color-gray-200);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-base);
+    font-family: var(--font-family);
+    transition: all var(--transition-base);
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text);
+    position: relative;
+    z-index: 1;
+}
+
+.form-page-container input:focus,
+.form-page-container textarea:focus,
+.form-page-container select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    background-color: var(--color-bg-secondary);
+}
+
+.form-page-container textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* Botones de acción del formulario */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+}
+
+.form-actions .btn {
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer !important;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+    display: inline-block;
+    position: relative;
+    z-index: 10;
+}
+
+.form-actions .btn-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+    color: white;
+}
+
+.form-actions .btn-primary:hover {
+    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary-lighter) 100%);
+    box-shadow: var(--glow-primary);
+    transform: translateY(-2px);
+}
+
+.form-actions .btn-success {
+    background: linear-gradient(135deg, var(--color-success) 0%, var(--color-success-dark) 100%);
+    color: white;
+}
+
+.form-actions .btn-success:hover {
+    background: linear-gradient(135deg, var(--color-success-dark) 0%, var(--color-success) 100%);
+    box-shadow: var(--glow-success);
+    transform: translateY(-2px);
+}
+
+.form-actions .btn-secondary {
+    background: transparent;
+    color: var(--color-text-light);
+    border: 2px solid var(--color-gray-300);
+}
+
+.form-actions .btn-secondary:hover {
+    background-color: var(--color-bg-tertiary);
+    border-color: var(--color-primary);
+    color: var(--color-primary-light);
+}
+
+.form-actions .btn-danger {
+    background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-dark) 100%);
+    color: white;
+}
+
+.form-actions .btn-danger:hover {
+    background: linear-gradient(135deg, var(--color-danger-dark) 0%, var(--color-danger) 100%);
+    box-shadow: var(--glow-danger);
+    transform: translateY(-2px);
+}
+
+/* Mensajes de ayuda */
+.help-text {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-lighter);
+}
+
+/* Mensajes de error */
+.error-message {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: var(--font-size-sm);
+    color: var(--color-danger);
+    font-weight: 500;
+}
+
+.form-page-container input.error,
+.form-page-container textarea.error,
+.form-page-container select.error {
+    border-color: var(--color-danger);
+}
+
+/* Grid de formulario */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.form-grid-full {
+    grid-column: 1 / -1;
+}
+
+/* Checkbox y radio personalizados */
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.form-check input[type="checkbox"],
+.form-check input[type="radio"] {
+    width: auto;
+    cursor: pointer;
+}
+
+.form-check label {
+    margin: 0;
+    cursor: pointer;
+    font-weight: 400;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .form-page-container {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+}

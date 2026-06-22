@@ -1,0 +1,48 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Entrega - CBE</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+</head>
+
+<body>
+  {% include 'includes/navbar.html' %}
+
+  <div class="form-page-container">
+    <h1>✏️ Editar Entrega</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="form-grid">
+        {% for field in form %}
+        <div class="form-group {% if field.name == 'observaciones' %}form-grid-full{% endif %}">
+          <label for="{{ field.id_for_label }}" {% if field.field.required %}class="required" {% endif %}>
+            {{ field.label }}
+          </label>
+          {{ field }}
+          {% if field.errors %}
+          <span class="error-message">{{ field.errors.0 }}</span>
+          {% endif %}
+          {% if field.help_text %}
+          <span class="help-text">{{ field.help_text }}</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-success">💾 Actualizar Entrega</button>
+        <a href="{% url 'envios:lista_entregas' %}" class="btn btn-secondary">↩️ Cancelar</a>
+      </div>
+    </form>
+  </div>
+</body>
+
+</html>

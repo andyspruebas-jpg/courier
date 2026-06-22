@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitar Envío - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'css/easy.css' %}?v=5">
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <main class="easy-page">
+        <div class="easy-header">
+            <div>
+                <p class="eyebrow">Nueva solicitud</p>
+                <h1>Solicitar envío</h1>
+            </div>
+            <a class="btn btn-outline" href="{% url 'envios:seguimiento_envio' %}">Buscar seguimiento</a>
+        </div>
+
+        <form method="POST" class="easy-form"
+            data-account-name="{{ datos_cuenta.nombre|escapejs }}"
+            data-account-phone="{{ datos_cuenta.telefono|escapejs }}"
+            data-account-address="{{ datos_cuenta.direccion|escapejs }}">
+            {% csrf_token %}
+
+            <section class="account-strip">
+                <div>
+                    <span>Cuenta</span>
+                    <strong>{{ datos_cuenta.nombre|default:"Sin cuenta detectada" }}</strong>
+                </div>
+                <div>
+                    <span>Teléfono</span>
+                    <strong>{{ datos_cuenta.telefono|default:"-" }}</strong>
+                </div>
+                <div>
+                    <span>Dirección base</span>
+                    <strong>{{ datos_cuenta.direccion|default:"Registrar dirección en empresa" }}</strong>
+                </div>
+            </section>
+
+            <section class="mode-grid" aria-label="Tipo de operación">
+                <label class="mode-card">
+                    <input type="radio" name="tipo" value="Envío" {% if form.tipo.value != "Recojo" %}checked{% endif %}>
+                    <span class="mode-title">Enviar desde mi cuenta</span>
+                    <span class="mode-copy">Origen ya cargado. Completa a quién se entrega.</span>
+                </label>
+                <label class="mode-card">
+                    <input type="radio" name="tipo" value="Recojo" {% if form.tipo.value == "Recojo" %}checked{% endif %}>
+                    <span class="mode-title">Recoger para mi cuenta</span>
+                    <span class="mode-copy">Destino ya cargado. Completa dónde se recoge.</span>
+                </label>
+                {% if form.tipo.errors %}<span class="error-message">{{ form.tipo.errors.0 }}</span>{% endif %}
+            </section>
+
+            <section class="easy-section">
+                <div class="section-title">
+                    <span>1</span>
+                    <h2>Personas y direcciones</h2>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="{{ form.remitente_nombre.id_for_label }}">{{ form.remitente_nombre.label }}</label>
+                        {{ form.remitente_nombre }}
+                        {% if form.remitente_nombre.errors %}<span class="error-message">{{ form.remitente_nombre.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.remitente_telefono.id_for_label }}">{{ form.remitente_telefono.label }}</label>
+                        {{ form.remitente_telefono }}
+                        {% if form.remitente_telefono.errors %}<span class="error-message">{{ form.remitente_telefono.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div class="form-group form-grid-full">
+                        <label for="{{ form.origen_direccion.id_for_label }}">{{ form.origen_direccion.label }}</label>
+                        {{ form.origen_direccion }}
+                        {% if form.origen_direccion.errors %}<span class="error-message">{{ form.origen_direccion.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.destinatario_nombre.id_for_label }}">{{ form.destinatario_nombre.label }}</label>
+                        {{ form.destinatario_nombre }}
+                        {% if form.destinatario_nombre.errors %}<span class="error-message">{{ form.destinatario_nombre.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.destinatario_telefono.id_for_label }}">{{ form.destinatario_telefono.label }}</label>
+                        {{ form.destinatario_telefono }}
+                        {% if form.destinatario_telefono.errors %}<span class="error-message">{{ form.destinatario_telefono.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div class="form-group form-grid-full">
+                        <label for="{{ form.destino_direccion.id_for_label }}">{{ form.destino_direccion.label }}</label>
+                        {{ form.destino_direccion }}
+                        {% if form.destino_direccion.errors %}<span class="error-message">{{ form.destino_direccion.errors.0 }}</span>{% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="easy-section">
+                <div class="section-title">
+                    <span>2</span>
+                    <h2>Paquete y pago</h2>
+                </div>
+                <div class="compact-grid">
+                    <div class="form-group">
+                        <label for="{{ form.peso.id_for_label }}">{{ form.peso.label }}</label>
+                        {{ form.peso }}
+                        {% if form.peso.errors %}<span class="error-message">{{ form.peso.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.tipo_servicio.id_for_label }}">{{ form.tipo_servicio.label }}</label>
+                        {{ form.tipo_servicio }}
+                        {% if form.tipo_servicio.errors %}<span class="error-message">{{ form.tipo_servicio.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.tipo_pago.id_for_label }}">{{ form.tipo_pago.label }}</label>
+                        {{ form.tipo_pago }}
+                        {% if form.tipo_pago.errors %}<span class="error-message">{{ form.tipo_pago.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.monto_pago.id_for_label }}">{{ form.monto_pago.label }}</label>
+                        {{ form.monto_pago }}
+                        {% if form.monto_pago.errors %}<span class="error-message">{{ form.monto_pago.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div class="form-group form-grid-full">
+                        <label for="{{ form.observaciones.id_for_label }}">{{ form.observaciones.label }}</label>
+                        {{ form.observaciones }}
+                        {% if form.observaciones.errors %}<span class="error-message">{{ form.observaciones.errors.0 }}</span>{% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <div class="sticky-actions">
+                <button type="submit" class="btn btn-success">Crear solicitud</button>
+                <a class="btn btn-secondary" href="{% url 'envios:lista_envios' %}">Ver envíos</a>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        const form = document.querySelector('.easy-form');
+        const account = {
+            name: form.dataset.accountName || '',
+            phone: form.dataset.accountPhone || '',
+            address: form.dataset.accountAddress || '',
+        };
+        const fields = {
+            remitenteNombre: document.getElementById('id_remitente_nombre'),
+            remitenteTelefono: document.getElementById('id_remitente_telefono'),
+            origen: document.getElementById('id_origen_direccion'),
+            destinatarioNombre: document.getElementById('id_destinatario_nombre'),
+            destinatarioTelefono: document.getElementById('id_destinatario_telefono'),
+            destino: document.getElementById('id_destino_direccion'),
+        };
+
+        function fillIfEmpty(input, value) {
+            if (input && !input.value && value) input.value = value;
+        }
+
+        function applyMode() {
+            const mode = document.querySelector('input[name="tipo"]:checked')?.value || 'Envío';
+            document.querySelectorAll('.mode-card').forEach((card) => {
+                card.classList.toggle('active', card.querySelector('input').checked);
+            });
+            if (mode === 'Recojo') {
+                fillIfEmpty(fields.destinatarioNombre, account.name);
+                fillIfEmpty(fields.destinatarioTelefono, account.phone);
+                fillIfEmpty(fields.destino, account.address);
+                fields.remitenteNombre?.focus();
+            } else {
+                fillIfEmpty(fields.remitenteNombre, account.name);
+                fillIfEmpty(fields.remitenteTelefono, account.phone);
+                fillIfEmpty(fields.origen, account.address);
+                fields.destinatarioNombre?.focus();
+            }
+        }
+
+        document.querySelectorAll('input[name="tipo"]').forEach((input) => {
+            input.addEventListener('change', applyMode);
+        });
+        applyMode();
+    </script>
+</body>
+</html>

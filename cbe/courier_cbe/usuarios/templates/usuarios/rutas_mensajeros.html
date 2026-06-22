@@ -1,0 +1,1040 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rutas de Mensajeros - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+
+    <style>
+        /* ======== FONDO ULTRA MODERNO ======== */
+        body {
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 50%, #0a0e1a 100%);
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            position: relative;
+        }
+
+        /* Fondo animado con partículas */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(20, 184, 166, 0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        .page-container {
+            flex: 1;
+            max-width: 1600px;
+            margin: 2rem auto;
+            padding: 0 2rem 2rem 2rem;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ======== HEADER PREMIUM ======== */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #818cf8 0%, #14b8a6 50%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 0.5rem 0;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            animation: shimmer 3s ease-in-out infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        /* ======== FILTROS GLASSMORPHISM ======== */
+        .filters {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            padding: 1.5rem;
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 1.5rem;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(99, 102, 241, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filters label {
+            color: #a1a1aa;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        select,
+        input[type="date"] {
+            padding: 0.75rem 1.25rem;
+            font-size: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            background: rgba(39, 39, 42, 0.6);
+            color: #fafafa;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+        }
+
+        select:focus,
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: rgba(39, 39, 42, 0.8);
+        }
+
+        select:hover,
+        input[type="date"]:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        button {
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.6);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+            box-shadow: none;
+            transform: none;
+        }
+
+        button:disabled::before {
+            display: none;
+        }
+
+        .availability-panel {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 1.5rem;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.35),
+                0 0 0 1px rgba(99, 102, 241, 0.1);
+            animation: fadeInUp 0.8s ease-out;
+            animation-delay: 0.1s;
+        }
+
+        .availability-header,
+        .calendar-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .availability-header {
+            margin-bottom: 1rem;
+        }
+
+        .availability-title h2,
+        .availability-title p {
+            margin: 0;
+        }
+
+        .availability-title h2 {
+            color: #fafafa;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .availability-title p,
+        .availability-summary {
+            color: #a1a1aa;
+            font-size: 0.92rem;
+        }
+
+        .calendar-legend {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: #d4d4d8;
+            font-size: 0.9rem;
+        }
+
+        .legend-swatch {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 999px;
+            background: rgba(82, 82, 91, 0.85);
+        }
+
+        .legend-swatch.has-routes {
+            background: #14b8a6;
+            box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.18);
+        }
+
+        .legend-swatch.selected {
+            background: #f59e0b;
+            box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.18);
+        }
+
+        .calendar-shell {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .calendar-month {
+            color: #fafafa;
+            font-size: 1.05rem;
+            font-weight: 700;
+            text-transform: capitalize;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .calendar-nav-btn {
+            width: 2.5rem;
+            height: 2.5rem;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            border-radius: 0.75rem;
+            background: rgba(39, 39, 42, 0.9);
+            box-shadow: none;
+        }
+
+        .calendar-nav-btn::before {
+            display: none;
+        }
+
+        .calendar-nav-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(99, 102, 241, 0.3);
+        }
+
+        .calendar-weekdays,
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 0.5rem;
+        }
+
+        .calendar-weekday {
+            text-align: center;
+            color: #71717a;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding-bottom: 0.15rem;
+        }
+
+        .calendar-day {
+            min-height: 4.25rem;
+            padding: 0.55rem 0.45rem 0.45rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-radius: 0.95rem;
+            background: rgba(39, 39, 42, 0.55);
+            border: 1px solid rgba(99, 102, 241, 0.16);
+            color: #fafafa;
+            box-shadow: none;
+        }
+
+        .calendar-day::before {
+            display: none;
+        }
+
+        .calendar-day:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.24);
+        }
+
+        .calendar-day.is-empty {
+            min-height: 4.25rem;
+            background: transparent;
+            border: none;
+            pointer-events: none;
+        }
+
+        .calendar-day.is-outside {
+            opacity: 0.35;
+        }
+
+        .calendar-day.has-routes {
+            border-color: rgba(20, 184, 166, 0.55);
+            background: linear-gradient(180deg, rgba(20, 184, 166, 0.18) 0%, rgba(39, 39, 42, 0.7) 100%);
+        }
+
+        .calendar-day.is-selected {
+            border-color: #f59e0b;
+            box-shadow:
+                0 0 0 2px rgba(245, 158, 11, 0.24),
+                0 12px 24px rgba(99, 102, 241, 0.16);
+        }
+
+        .calendar-day-number {
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .calendar-day-meta {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.35rem;
+        }
+
+        .calendar-status-dot {
+            width: 0.58rem;
+            height: 0.58rem;
+            border-radius: 999px;
+            background: rgba(113, 113, 122, 0.85);
+        }
+
+        .calendar-status-dot.has-routes {
+            background: #14b8a6;
+            box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.18);
+        }
+
+        .calendar-count {
+            min-width: 1.25rem;
+            padding: 0.15rem 0.35rem;
+            border-radius: 999px;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #e4e4e7;
+            background: rgba(99, 102, 241, 0.22);
+        }
+
+        .calendar-count.is-empty {
+            visibility: hidden;
+        }
+
+        /* ======== MAPA GLASSMORPHISM ======== */
+        .map-container {
+            position: relative;
+            animation: fadeInUp 0.8s ease-out;
+            animation-delay: 0.2s;
+            opacity: 0;
+            animation-fill-mode: forwards;
+        }
+
+        #map {
+            height: 70vh;
+            width: 100%;
+            border-radius: 1.5rem;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(99, 102, 241, 0.2);
+            overflow: hidden;
+        }
+
+        /* ======== MENSAJE DE NO DATA ======== */
+        #noData {
+            text-align: center;
+            color: #a1a1aa;
+            margin-top: 2rem;
+            font-size: 1.1rem;
+            font-style: italic;
+            padding: 1.5rem;
+            background: rgba(24, 24, 27, 0.5);
+            border-radius: 0.75rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        /* ======== RESPONSIVE ======== */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .filters {
+                flex-direction: column;
+                gap: 0.75rem;
+                padding: 1rem;
+            }
+
+            .availability-panel {
+                padding: 1rem;
+            }
+
+            .availability-header,
+            .calendar-toolbar {
+                align-items: flex-start;
+            }
+
+            .calendar-nav {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .calendar-weekdays,
+            .calendar-grid {
+                gap: 0.35rem;
+            }
+
+            .calendar-day,
+            .calendar-day.is-empty {
+                min-height: 3.6rem;
+            }
+
+            select,
+            input[type="date"],
+            button {
+                width: 100%;
+            }
+
+            #map {
+                height: 50vh;
+            }
+
+            .page-container {
+                padding: 0 1rem 1rem 1rem;
+            }
+        }
+
+        @media (max-width: 500px) {
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            #map {
+                height: 40vh;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <div class="page-container">
+        <div class="header">
+            <h1>🗺️ Rutas de Mensajeros</h1>
+        </div>
+
+        <div class="filters">
+            <label>Mensajero:</label>
+            <select id="mensajeroSelect">
+                <option value="">-- Selecciona un mensajero --</option>
+                {% for m in mensajeros %}
+                <option value="{{ m.id }}">{{ m.nombre }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Fecha:</label>
+            <input
+                type="date"
+                id="fechaSelect"
+                value="{{ default_route_date|date:'Y-m-d' }}"
+                {% if min_route_date %}min="{{ min_route_date|date:'Y-m-d' }}"{% endif %}
+                {% if max_route_date %}max="{{ max_route_date|date:'Y-m-d' }}"{% endif %}
+            >
+
+            <button id="verRutaBtn" onclick="cargarRuta()">Ver Ruta</button>
+        </div>
+
+        <div class="availability-panel">
+            <div class="availability-header">
+                <div class="availability-title">
+                    <h2>Fechas con rutas</h2>
+                    <p id="availabilitySummary" class="availability-summary"></p>
+                </div>
+                <div class="calendar-legend">
+                    <span class="legend-item"><span class="legend-swatch has-routes"></span>Con rutas</span>
+                    <span class="legend-item"><span class="legend-swatch"></span>Sin rutas</span>
+                    <span class="legend-item"><span class="legend-swatch selected"></span>Seleccionada</span>
+                </div>
+            </div>
+
+            <div class="calendar-shell">
+                <div class="calendar-toolbar">
+                    <strong id="calendarMonthLabel" class="calendar-month"></strong>
+                    <div class="calendar-nav">
+                        <button id="calendarPrevBtn" type="button" class="calendar-nav-btn" aria-label="Mes anterior">&larr;</button>
+                        <button id="calendarNextBtn" type="button" class="calendar-nav-btn" aria-label="Mes siguiente">&rarr;</button>
+                    </div>
+                </div>
+
+                <div class="calendar-weekdays">
+                    <span class="calendar-weekday">L</span>
+                    <span class="calendar-weekday">M</span>
+                    <span class="calendar-weekday">X</span>
+                    <span class="calendar-weekday">J</span>
+                    <span class="calendar-weekday">V</span>
+                    <span class="calendar-weekday">S</span>
+                    <span class="calendar-weekday">D</span>
+                </div>
+
+                <div id="calendarGrid" class="calendar-grid"></div>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+
+        <p id="noData"></p>
+    </div>
+
+    {{ route_availability|json_script:"routeAvailabilityData" }}
+    <script>
+        let map;
+        let rutaPolyline;
+        let markers = [];
+        const mensajeroSelect = document.getElementById('mensajeroSelect');
+        const fechaSelect = document.getElementById('fechaSelect');
+        const noData = document.getElementById('noData');
+        const verRutaBtn = document.getElementById('verRutaBtn');
+        const routeAvailability = JSON.parse(document.getElementById('routeAvailabilityData').textContent);
+        const calendarGrid = document.getElementById('calendarGrid');
+        const calendarMonthLabel = document.getElementById('calendarMonthLabel');
+        const calendarPrevBtn = document.getElementById('calendarPrevBtn');
+        const calendarNextBtn = document.getElementById('calendarNextBtn');
+        const availabilitySummary = document.getElementById('availabilitySummary');
+        const minSelectableDate = parseISODate(fechaSelect.min);
+        const maxSelectableDate = parseISODate(fechaSelect.max);
+        let calendarCursor = parseISODate(fechaSelect.value) || maxSelectableDate || new Date();
+
+        function parseISODate(value) {
+            if (!value) {
+                return null;
+            }
+
+            const [year, month, day] = value.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        function formatISODate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDisplayDate(value) {
+            const selectedDate = parseISODate(value);
+            if (!selectedDate) {
+                return '';
+            }
+
+            return selectedDate.toLocaleDateString('es-BO', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+            });
+        }
+
+        function compareMonths(left, right) {
+            return ((left.getFullYear() - right.getFullYear()) * 12) + (left.getMonth() - right.getMonth());
+        }
+
+        function estaFueraDeRango(date) {
+            if (minSelectableDate && date < minSelectableDate) {
+                return true;
+            }
+
+            if (maxSelectableDate && date > maxSelectableDate) {
+                return true;
+            }
+
+            return false;
+        }
+
+        function actualizarResumenDisponibilidad() {
+            if (!fechaSelect.value) {
+                availabilitySummary.textContent = "";
+                return;
+            }
+
+            const totalMensajeros = routeAvailability[fechaSelect.value] || 0;
+            const etiquetaFecha = formatDisplayDate(fechaSelect.value);
+
+            availabilitySummary.textContent = totalMensajeros
+                ? `${totalMensajeros} mensajero${totalMensajeros === 1 ? '' : 's'} con ruta el ${etiquetaFecha}`
+                : `Sin rutas registradas el ${etiquetaFecha}`;
+        }
+
+        function renderCalendar() {
+            calendarGrid.innerHTML = "";
+
+            const monthStart = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth(), 1);
+            const daysInMonth = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 0).getDate();
+            const firstWeekday = (monthStart.getDay() + 6) % 7;
+            const selectedDate = fechaSelect.value;
+
+            calendarMonthLabel.textContent = monthStart.toLocaleDateString('es-BO', {
+                month: 'long',
+                year: 'numeric',
+            });
+
+            for (let blank = 0; blank < firstWeekday; blank += 1) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day is-empty';
+                calendarGrid.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day += 1) {
+                const dayDate = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth(), day);
+                const isoDate = formatISODate(dayDate);
+                const hasRoutes = Boolean(routeAvailability[isoDate]);
+                const isSelected = isoDate === selectedDate;
+                const isOutsideRange = estaFueraDeRango(dayDate);
+                const totalMensajeros = routeAvailability[isoDate] || 0;
+                const labelDisponibilidad = hasRoutes
+                    ? `${formatDisplayDate(isoDate)}: ${totalMensajeros} mensajero${totalMensajeros === 1 ? '' : 's'} con ruta`
+                    : `${formatDisplayDate(isoDate)}: sin rutas`;
+
+                const dayButton = document.createElement('button');
+                dayButton.type = 'button';
+                dayButton.className = 'calendar-day';
+                dayButton.dataset.date = isoDate;
+                dayButton.setAttribute('aria-label', labelDisponibilidad);
+                dayButton.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+
+                if (hasRoutes) {
+                    dayButton.classList.add('has-routes');
+                }
+                if (isSelected) {
+                    dayButton.classList.add('is-selected');
+                }
+                if (isOutsideRange) {
+                    dayButton.classList.add('is-outside');
+                    dayButton.disabled = true;
+                }
+
+                dayButton.innerHTML = `
+                    <span class="calendar-day-number">${day}</span>
+                    <span class="calendar-day-meta">
+                        <span class="calendar-status-dot ${hasRoutes ? 'has-routes' : ''}"></span>
+                        <span class="calendar-count ${hasRoutes ? '' : 'is-empty'}">${hasRoutes ? totalMensajeros : '0'}</span>
+                    </span>
+                `;
+                dayButton.title = labelDisponibilidad;
+
+                dayButton.addEventListener('click', () => {
+                    fechaSelect.value = isoDate;
+                    calendarCursor = new Date(dayDate.getFullYear(), dayDate.getMonth(), 1);
+                    renderCalendar();
+                    actualizarMensajerosPorFecha();
+                });
+
+                calendarGrid.appendChild(dayButton);
+            }
+
+            const previousMonth = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() - 1, 1);
+            const nextMonth = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 1);
+
+            calendarPrevBtn.disabled = Boolean(
+                minSelectableDate && compareMonths(previousMonth, minSelectableDate) < 0
+            );
+            calendarNextBtn.disabled = Boolean(
+                maxSelectableDate && compareMonths(nextMonth, maxSelectableDate) > 0
+            );
+
+            actualizarResumenDisponibilidad();
+        }
+
+        function limpiarMapa() {
+            if (rutaPolyline) {
+                rutaPolyline.setMap(null);
+                rutaPolyline = null;
+            }
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+        }
+
+        function actualizarEstadoBoton() {
+            verRutaBtn.disabled = !mensajeroSelect.value || !fechaSelect.value;
+        }
+
+        function renderMensajerosDisponibles(mensajeros, selectedId = "") {
+            mensajeroSelect.innerHTML = "";
+
+            const placeholder = document.createElement("option");
+            placeholder.value = "";
+            placeholder.textContent = mensajeros.length
+                ? "-- Selecciona un mensajero --"
+                : "-- No hay mensajeros con ruta --";
+            mensajeroSelect.appendChild(placeholder);
+
+            mensajeros.forEach(mensajero => {
+                const option = document.createElement("option");
+                option.value = mensajero.id;
+                option.textContent = mensajero.nombre;
+                if (String(mensajero.id) === String(selectedId)) {
+                    option.selected = true;
+                }
+                mensajeroSelect.appendChild(option);
+            });
+
+            const selectedStillExists = mensajeros.some(
+                mensajero => String(mensajero.id) === String(selectedId)
+            );
+
+            if (!selectedStillExists) {
+                mensajeroSelect.value = "";
+            }
+
+            mensajeroSelect.disabled = mensajeros.length === 0;
+            actualizarEstadoBoton();
+        }
+
+        async function actualizarMensajerosPorFecha() {
+            const fecha = fechaSelect.value;
+            const selectedId = mensajeroSelect.value;
+
+            if (!fecha) {
+                renderMensajerosDisponibles([]);
+                limpiarMapa();
+                noData.textContent = "⚠️ Selecciona una fecha";
+                return;
+            }
+
+            try {
+                const response = await fetch(`/usuarios/obtener_mensajeros_con_ruta/?fecha=${fecha}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "No se pudieron cargar los mensajeros");
+                }
+
+                renderMensajerosDisponibles(data.mensajeros || [], selectedId);
+                limpiarMapa();
+                renderCalendar();
+
+                if ((data.mensajeros || []).length === 0) {
+                    noData.textContent = "📍 No hay mensajeros con ruta para ese día.";
+                } else {
+                    noData.textContent = "";
+                }
+            } catch (error) {
+                console.error("Error al cargar mensajeros:", error);
+                renderMensajerosDisponibles([]);
+                limpiarMapa();
+                renderCalendar();
+                noData.textContent = "❌ Error al cargar los mensajeros.";
+            }
+        }
+
+        // ✅ Inicializa el mapa de Google con tema oscuro
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: -16.5, lng: -68.15 },
+                zoom: 13,
+                mapTypeId: "roadmap",
+                styles: [
+                    { elementType: "geometry", stylers: [{ color: "#212121" }] },
+                    { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+                    { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+                    {
+                        featureType: "administrative.locality",
+                        elementType: "labels.text.fill",
+                        stylers: [{ color: "#d59563" }]
+                    },
+                    {
+                        featureType: "poi",
+                        elementType: "labels.text.fill",
+                        stylers: [{ color: "#d59563" }]
+                    },
+                    {
+                        featureType: "poi.park",
+                        elementType: "geometry",
+                        stylers: [{ color: "#263c3f" }]
+                    },
+                    {
+                        featureType: "poi.park",
+                        elementType: "labels.text.fill",
+                        stylers: [{ color: "#6b9a76" }]
+                    },
+                    {
+                        featureType: "road",
+                        elementType: "geometry",
+                        stylers: [{ color: "#38414e" }]
+                    },
+                    {
+                        featureType: "road",
+                        elementType: "geometry.stroke",
+                        stylers: [{ color: "#212a37" }]
+                    },
+                    {
+                        featureType: "road",
+                        elementType: "labels.text.fill",
+                        stylers: [{ color: "#9ca5b3" }]
+                    },
+                    {
+                        featureType: "road.highway",
+                        elementType: "geometry",
+                        stylers: [{ color: "#746855" }]
+                    },
+                    {
+                        featureType: "road.highway",
+                        elementType: "geometry.stroke",
+                        stylers: [{ color: "#1f2835" }]
+                    },
+                    {
+                        featureType: "road.highway",
+                        elementType: "labels.text.fill",
+                        stylers: [{ color: "#f3d19c" }]
+                    },
+                    {
+                        featureType: "transit",
+                        elementType: "geometry",
+                        stylers: [{ color: "#2f3948" }]
+                    },
+                    {
+                        featureType: "transit.station",
+                        elementType: "labels.text.fill",
+                        stylers: [{ color: "#d59563" }]
+                    },
+                    {
+                        featureType: "water",
+                        elementType: "geometry",
+                        stylers: [{ color: "#17263c" }]
+                    },
+                    {
+                        featureType: "water",
+                        elementType: "labels.text.fill",
+                        stylers: [{ color: "#515c6d" }]
+                    },
+                    {
+                        featureType: "water",
+                        elementType: "labels.text.stroke",
+                        stylers: [{ color: "#17263c" }]
+                    }
+                ]
+            });
+        }
+
+        // ✅ Cargar ruta desde el backend
+        function cargarRuta() {
+            const mensajeroId = mensajeroSelect.value;
+            const fecha = fechaSelect.value;
+            noData.textContent = "";
+
+            if (!mensajeroId || !fecha) {
+                noData.textContent = "⚠️ Selecciona un mensajero y una fecha";
+                return;
+            }
+
+            fetch(`/usuarios/obtener_ruta_mensajero/?mensajero_id=${mensajeroId}&fecha=${fecha}`)
+                .then(res => res.json())
+                .then(data => {
+                    // Limpia ruta y marcadores anteriores
+                    limpiarMapa();
+
+                    if (!data.puntos || data.puntos.length === 0) {
+                        noData.textContent = "📍 No hay registros para ese día.";
+                        return;
+                    }
+
+                    const coords = data.puntos.map(p => ({ lat: parseFloat(p.lat), lng: parseFloat(p.lng) }));
+
+                    // 🔹 Dibuja la línea de la ruta con colores modernos
+                    rutaPolyline = new google.maps.Polyline({
+                        path: coords,
+                        geodesic: true,
+                        strokeColor: "#6366f1",
+                        strokeOpacity: 0.9,
+                        strokeWeight: 4,
+                    });
+                    rutaPolyline.setMap(map);
+
+                    // 🔹 Marcador de inicio
+                    const inicio = new google.maps.Marker({
+                        position: coords[0],
+                        map: map,
+                        label: { text: "A", color: "white" },
+                        title: "Inicio",
+                    });
+                    const infoInicio = new google.maps.InfoWindow({
+                        content: `<div style="color: #333;"><b>Inicio</b><br>Hora: ${data.puntos[0].hora}</div>`,
+                    });
+                    inicio.addListener("click", () => infoInicio.open(map, inicio));
+                    markers.push(inicio);
+
+                    // 🔹 Marcador de fin
+                    const fin = new google.maps.Marker({
+                        position: coords[coords.length - 1],
+                        map: map,
+                        label: { text: "B", color: "white" },
+                        title: "Fin",
+                    });
+                    const infoFin = new google.maps.InfoWindow({
+                        content: `<div style="color: #333;"><b>Fin</b><br>Hora: ${data.puntos[data.puntos.length - 1].hora}</div>`,
+                    });
+                    fin.addListener("click", () => infoFin.open(map, fin));
+                    markers.push(fin);
+
+                    // 🔹 Centrar el mapa en la ruta
+                    const bounds = new google.maps.LatLngBounds();
+                    coords.forEach(c => bounds.extend(c));
+                    map.fitBounds(bounds);
+                })
+                .catch(err => {
+                    console.error("Error al cargar ruta:", err);
+                    noData.textContent = "❌ Error al cargar la ruta.";
+                });
+        }
+
+        calendarPrevBtn.addEventListener('click', () => {
+            calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() - 1, 1);
+            renderCalendar();
+        });
+
+        calendarNextBtn.addEventListener('click', () => {
+            calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + 1, 1);
+            renderCalendar();
+        });
+
+        fechaSelect.addEventListener("change", () => {
+            const selectedDate = parseISODate(fechaSelect.value);
+            if (selectedDate) {
+                calendarCursor = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+            }
+            renderCalendar();
+            actualizarMensajerosPorFecha();
+        });
+        mensajeroSelect.addEventListener("change", actualizarEstadoBoton);
+        actualizarEstadoBoton();
+        renderCalendar();
+        actualizarMensajerosPorFecha();
+    </script>
+
+    <!-- ✅ Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap"
+        async defer></script>
+</body>
+
+</html>

@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Zona - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            margin: 1rem 0;
+        }
+
+        .map-instructions {
+            background: var(--color-bg-secondary);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .map-instructions strong {
+            color: var(--color-primary);
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <div class="form-page-container">
+        <h1>✏️ Editar Zona</h1>
+
+        <form method="POST" id="zonaForm">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ form.nombre.id_for_label }}" class="required">Nombre de la Zona</label>
+                {{ form.nombre }}
+                {% if form.nombre.errors %}
+                <span class="error-message">{{ form.nombre.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.descripcion.id_for_label }}">Descripción</label>
+                {{ form.descripcion }}
+                {% if form.descripcion.errors %}
+                <span class="error-message">{{ form.descripcion.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label class="required">Área de la Zona (Polígono)</label>
+                <div class="map-instructions">
+                    <strong>📍 Instrucciones:</strong> Usa la herramienta de polígono para editar el área. Puedes
+                    arrastrar los puntos para modificarlos o borrar el polígono y dibujar uno nuevo.
+                </div>
+                <div id="map"></div>
+                <input type="hidden" id="id_area" name="area" value='{{ zona.area }}'>
+                {% if form.area.errors %}
+                <span class="error-message">{{ form.area.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-success">💾 Actualizar Zona</button>
+                <a href="{% url 'zonas:lista_zonas' %}" class="btn btn-secondary">↩️ Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let map;
+        let drawingManager;
+        let currentPolygon = null;
+        const areaField = document.getElementById('id_area');
+
+        function initMap() {
+            const center = { lat: -16.5, lng: -68.15 };
+
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 13,
+                center: center,
+                mapTypeId: 'roadmap'
+            });
+
+            drawingManager = new google.maps.drawing.DrawingManager({
+                drawingControl: true,
+                drawingControlOptions: {
+                    position: google.maps.ControlPosition.TOP_CENTER,
+                    drawingModes: ['polygon']
+                },
+                polygonOptions: {
+                    fillColor: '#3498db',
+                    fillOpacity: 0.4,
+                    strokeWeight: 2,
+                    strokeColor: '#2980b9',
+                    clickable: true,
+                    editable: true,
+                    zoomOnClick: true
+                }
+            });
+
+            drawingManager.setMap(map);
+            loadExistingPolygon();
+
+            google.maps.event.addListener(drawingManager, 'polygoncomplete', function (polygon) {
+                if (currentPolygon) {
+                    currentPolygon.setMap(null);
+                }
+
+                currentPolygon = polygon;
+                updateAreaField(polygon);
+
+                google.maps.event.addListener(polygon.getPath(), 'set_at', function () {
+                    updateAreaField(polygon);
+                });
+
+                google.maps.event.addListener(polygon.getPath(), 'insert_at', function () {
+                    updateAreaField(polygon);
+                });
+
+                drawingManager.setDrawingMode(null);
+            });
+        }
+
+        function loadExistingPolygon() {
+            const areaData = areaField.value;
+
+            if (!areaData || areaData === '[]') {
+                return;
+            }
+
+            try {
+                const coordinates = JSON.parse(areaData);
+
+                if (coordinates && coordinates.length > 0) {
+                    const paths = coordinates.map(coord => ({
+                        lat: parseFloat(coord[0]),
+                        lng: parseFloat(coord[1])
+                    }));
+
+                    currentPolygon = new google.maps.Polygon({
+                        paths: paths,
+                        fillColor: '#3498db',
+                        fillOpacity: 0.4,
+                        strokeWeight: 2,
+                        strokeColor: '#2980b9',
+                        editable: true,
+                        map: map
+                    });
+
+                    const bounds = new google.maps.LatLngBounds();
+                    paths.forEach(point => bounds.extend(point));
+                    map.fitBounds(bounds);
+
+                    google.maps.event.addListener(currentPolygon.getPath(), 'set_at', function () {
+                        updateAreaField(currentPolygon);
+                    });
+
+                    google.maps.event.addListener(currentPolygon.getPath(), 'insert_at', function () {
+                        updateAreaField(currentPolygon);
+                    });
+                }
+            } catch (e) {
+                console.error('Error loading polygon:', e);
+            }
+        }
+
+        function updateAreaField(polygon) {
+            const path = polygon.getPath();
+            const coordinates = [];
+
+            for (let i = 0; i < path.getLength(); i++) {
+                const point = path.getAt(i);
+                coordinates.push([point.lat(), point.lng()]);
+            }
+
+            if (coordinates.length > 0) {
+                coordinates.push(coordinates[0]);
+            }
+
+            areaField.value = JSON.stringify(coordinates);
+        }
+
+        document.getElementById('zonaForm').addEventListener('submit', function (e) {
+            if (!areaField.value || areaField.value === '[]') {
+                e.preventDefault();
+                alert('⚠️ Por favor dibuja el área de la zona en el mapa antes de guardar.');
+                return false;
+            }
+        });
+
+        window.initMap = initMap;
+    </script>
+
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap&libraries=drawing"
+        async defer></script>
+</body>
+
+</html>

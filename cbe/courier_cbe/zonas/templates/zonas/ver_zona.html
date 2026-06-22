@@ -1,0 +1,331 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Detalles de la Zona</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+
+    <style>
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .detail-container {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 2.5rem;
+            background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(99, 102, 241, 0.3);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .detail-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 1.5rem;
+            padding: 2px;
+            background: linear-gradient(135deg, #6366f1 0%, #14b8a6 50%, #6366f1 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            opacity: 0.6;
+            animation: borderRotate 3s linear infinite;
+        }
+
+        @keyframes borderRotate {
+
+            0%,
+            100% {
+                background: linear-gradient(135deg, #6366f1 0%, #14b8a6 50%, #6366f1 100%);
+            }
+
+            50% {
+                background: linear-gradient(135deg, #14b8a6 0%, #6366f1 50%, #14b8a6 100%);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .detail-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .detail-header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #818cf8 0%, #14b8a6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+        }
+
+        .detail-header p {
+            color: #a1a1aa;
+            font-size: 1rem;
+        }
+
+        .detail-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            background: rgba(39, 39, 42, 0.6);
+            border-radius: 0.75rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .info-row:hover {
+            background: rgba(39, 39, 42, 0.8);
+            border-color: rgba(99, 102, 241, 0.5);
+            transform: translateX(5px);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .info-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .info-label {
+            font-weight: 700;
+            color: #a1a1aa;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: #fafafa;
+            font-size: 1.125rem;
+            font-weight: 500;
+        }
+
+        .info-text {
+            flex: 1;
+        }
+
+        .map-section {
+            margin-top: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .map-section h2 {
+            color: #fafafa;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        #map {
+            height: 500px;
+            width: 100%;
+            border-radius: 0.75rem;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .actions {
+            margin-top: 2.5rem;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-back::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-back:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-back:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.6);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 640px) {
+            .detail-container {
+                margin: 1.5rem;
+                padding: 1.5rem;
+            }
+
+            .detail-header h1 {
+                font-size: 2rem;
+            }
+
+            #map {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <div class="detail-container">
+        <div class="detail-header">
+            <h1>🗺️ Detalles de la Zona</h1>
+            <p>Información y ubicación de la zona de cobertura</p>
+        </div>
+
+        <div class="detail-content">
+            <div class="info-row">
+                <div class="info-icon">📌</div>
+                <div class="info-text">
+                    <div class="info-label">Nombre de la Zona</div>
+                    <div class="info-value">{{ zona.nombre }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="map-section">
+            <h2>📍 Ubicación en el Mapa</h2>
+            <div id="map"></div>
+        </div>
+
+        <div class="actions">
+            <a href="{% url 'zonas:lista_zonas' %}" class="btn-back">
+                <span>⬅</span>
+                <span>Volver a Zonas</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function initMap() {
+            const coords = JSON.parse('{{ zona.area|escapejs }}');
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 14,
+                center: { lat: coords[0][0], lng: coords[0][1] },
+                styles: [
+                    { elementType: "geometry", stylers: [{ color: "#212121" }] },
+                    { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+                    { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+                    {
+                        featureType: "administrative.locality",
+                        elementType: "labels.text.fill",
+                        stylers: [{ color: "#d59563" }]
+                    },
+                    {
+                        featureType: "poi",
+                        elementType: "labels.text.fill",
+                        stylers: [{ color: "#d59563" }]
+                    },
+                    {
+                        featureType: "road",
+                        elementType: "geometry",
+                        stylers: [{ color: "#38414e" }]
+                    },
+                    {
+                        featureType: "road",
+                        elementType: "geometry.stroke",
+                        stylers: [{ color: "#212a37" }]
+                    },
+                    {
+                        featureType: "road",
+                        elementType: "labels.text.fill",
+                        stylers: [{ color: "#9ca5b3" }]
+                    },
+                    {
+                        featureType: "water",
+                        elementType: "geometry",
+                        stylers: [{ color: "#17263c" }]
+                    },
+                    {
+                        featureType: "water",
+                        elementType: "labels.text.fill",
+                        stylers: [{ color: "#515c6d" }]
+                    }
+                ]
+            });
+
+            new google.maps.Polygon({
+                paths: coords.map(c => ({ lat: c[0], lng: c[1] })),
+                map: map,
+                strokeColor: "#6366f1",
+                strokeOpacity: 0.8,
+                strokeWeight: 3,
+                fillColor: "#6366f1",
+                fillOpacity: 0.35
+            });
+        }
+    </script>
+
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap&libraries=drawing"
+        async defer></script>
+</body>
+
+</html>

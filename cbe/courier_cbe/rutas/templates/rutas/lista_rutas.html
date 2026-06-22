@@ -1,0 +1,568 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Mensajero - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+
+    <style>
+        /* ======== FONDO ULTRA MODERNO ======== */
+        body {
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 50%, #0a0e1a 100%);
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            position: relative;
+        }
+
+        /* Fondo animado con partículas */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(20, 184, 166, 0.1) 0%, transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ======== HEADER PREMIUM ======== */
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #818cf8 0%, #14b8a6 50%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 2rem 0;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            animation: shimmer 3s ease-in-out infinite;
+            background-size: 200% 200%;
+            text-align: center;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        /* ======== GRID LAYOUT ======== */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 2rem;
+            align-items: start;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 2rem;
+        }
+
+        /* ======== BUSCADOR GLASSMORPHISM ======== */
+        .search-box {
+            margin-bottom: 1.5rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 0.75rem;
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #fafafa;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow:
+                0 4px 16px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow:
+                0 0 0 3px rgba(99, 102, 241, 0.2),
+                0 4px 16px rgba(0, 0, 0, 0.3);
+            background: rgba(24, 24, 27, 0.9);
+        }
+
+        .search-box input::placeholder {
+            color: #a1a1aa;
+        }
+
+        /* ======== LISTA DE MENSAJEROS ======== */
+        .mensajeros-lista {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        /* Scrollbar personalizado */
+        .mensajeros-lista::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .mensajeros-lista::-webkit-scrollbar-track {
+            background: rgba(24, 24, 27, 0.3);
+            border-radius: 10px;
+        }
+
+        .mensajeros-lista::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 10px;
+        }
+
+        .mensajeros-lista::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.7);
+        }
+
+        /* ======== ITEM DE MENSAJERO ======== */
+        .mensajero-item {
+            padding: 1.25rem;
+            margin-bottom: 0.75rem;
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .mensajero-item:hover {
+            background: rgba(39, 39, 42, 0.8);
+            border-color: rgba(99, 102, 241, 0.5);
+            transform: translateX(5px);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+        }
+
+        .mensajero-item.active {
+            background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+            border-color: #6366f1;
+            transform: translateX(8px) scale(1.02);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.5);
+        }
+
+        .mensajero-nombre {
+            font-weight: 700;
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+            color: #fafafa;
+        }
+
+        .mensajero-badge {
+            display: inline-block;
+            background: rgba(20, 184, 166, 0.8);
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(20, 184, 166, 0.3);
+        }
+
+        .mensajero-item.active .mensajero-badge {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ======== PANEL DE ENVÍOS GLASSMORPHISM ======== */
+        .envios-panel {
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            min-height: 500px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(99, 102, 241, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .envios-panel.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #a1a1aa;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            color: #fafafa;
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        /* ======== BOTÓN OPTIMIZAR ======== */
+        .btn-optimizar {
+            padding: 0.875rem 2rem;
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(20, 184, 166, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-optimizar::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-optimizar:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-optimizar:hover {
+            background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+            box-shadow: 0 8px 32px rgba(20, 184, 166, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* ======== TABLA MODERNA ======== */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        th {
+            background: rgba(39, 39, 42, 0.6);
+            color: #a1a1aa;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.3);
+        }
+
+        th:first-child {
+            border-top-left-radius: 0.75rem;
+        }
+
+        th:last-child {
+            border-top-right-radius: 0.75rem;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            color: #fafafa;
+            transition: background 0.2s ease;
+        }
+
+        tr:hover td {
+            background: rgba(39, 39, 42, 0.4);
+        }
+
+        tr:last-child td:first-child {
+            border-bottom-left-radius: 0.75rem;
+        }
+
+        tr:last-child td:last-child {
+            border-bottom-right-radius: 0.75rem;
+        }
+
+        /* ======== BADGES ======== */
+        .badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .badge-pendiente {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        /* ======== ESTADO VACÍO ======== */
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* ======== RESPONSIVE ======== */
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .mensajeros-lista {
+                max-height: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .envios-panel {
+                padding: 1.5rem;
+            }
+
+            table {
+                font-size: 0.875rem;
+            }
+
+            th,
+            td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+
+        @media print {
+
+            nav,
+            .navbar,
+            .sidebar {
+                display: none !important;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            body::before {
+                display: none;
+            }
+
+            .envios-panel {
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <div class="container">
+        <h1>🗺️ Seleccionar Mensajero para Optimizar Ruta</h1>
+
+        <div class="content-grid">
+            <div class="sidebar">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 Buscar mensajero..." value="{{ search_query }}"
+                        autocomplete="off">
+                </div>
+
+                <ul class="mensajeros-lista" id="mensajerosList">
+                    {% for data in mensajeros_data %}
+                    <li class="mensajero-item" data-mensajero-id="{{ data.mensajero.id }}"
+                        data-mensajero-nombre="{{ data.mensajero.nombre }}">
+                        <div class="mensajero-nombre">{{ data.mensajero.nombre }}</div>
+                        <span class="mensajero-badge">{{ data.envios_count }} {% if data.envios_count == 1 %}envío{%
+                            else %}envíos{% endif %}</span>
+                    </li>
+                    {% empty %}
+                    <div style="text-align: center; padding: 2rem; color: #a1a1aa;">
+                        <p>No hay mensajeros disponibles</p>
+                    </div>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="envios-panel empty" id="enviosPanel">
+                <div class="empty-icon">📦</div>
+                <p>Selecciona un mensajero para ver sus envíos pendientes</p>
+            </div>
+
+            {% for data in mensajeros_data %}
+            <div id="envios-{{ data.mensajero.id }}" style="display: none;">
+                <div class="panel-header">
+                    <h2>📦 Envíos de {{ data.mensajero.nombre }}</h2>
+                    <a href="{% url 'rutas:optimizar_rutas' data.mensajero.id %}" class="btn-optimizar">
+                        <span>🔧</span>
+                        <span>Optimizar Ruta</span>
+                    </a>
+                </div>
+
+                {% if data.envios %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tipo</th>
+                            <th>Origen</th>
+                            <th>Destino</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for envio in data.envios %}
+                        <tr>
+                            <td>#{{ envio.id }}</td>
+                            <td>{{ envio.tipo }}</td>
+                            <td>{{ envio.origen_direccion|truncatewords:5 }}</td>
+                            <td>{{ envio.destino_direccion|truncatewords:5 }}</td>
+                            <td><span class="badge badge-pendiente">{{ envio.estado }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="text-align: center; padding: 3rem; color: #a1a1aa;">
+                    <p class="empty-icon">✅</p>
+                    <p>No hay envíos pendientes</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        const mensajeroItems = document.querySelectorAll('.mensajero-item');
+        const enviosPanel = document.getElementById('enviosPanel');
+        const searchInput = document.getElementById('searchInput');
+
+        mensajeroItems.forEach(item => {
+            item.addEventListener('click', function () {
+                const mensajeroId = this.dataset.mensajeroId;
+                mensajeroItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const enviosContent = document.getElementById(`envios-${mensajeroId}`);
+                if (enviosContent) {
+                    enviosPanel.innerHTML = enviosContent.innerHTML;
+                    enviosPanel.classList.remove('empty');
+                }
+            });
+        });
+
+        let searchTimeout;
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const searchValue = this.value;
+                const url = new URL(window.location.href);
+                if (searchValue) {
+                    url.searchParams.set('search', searchValue);
+                } else {
+                    url.searchParams.delete('search');
+                }
+                window.location.href = url.toString();
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>

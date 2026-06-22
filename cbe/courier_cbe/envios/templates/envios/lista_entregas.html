@@ -1,0 +1,150 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Entregas - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pagination.css' %}">
+</head>
+
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <div class="page-container">
+        <h1>Lista de Entregas</h1>
+
+        <!-- Barra de acciones -->
+        <div class="actions-bar">
+            <a href="{% url 'envios:lista_envios' %}" class="btn-add">
+                ⬅️ Volver a envíos
+            </a>
+            <a href="{% url 'envios:reportes_operativos' %}" class="btn-add">
+                📊 Reportes
+            </a>
+
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" class="search-input"
+                    placeholder="Buscar por código, destinatario o estado..." value="{{ search_query }}"
+                    autocomplete="off">
+                <span class="search-loader" id="searchLoader">⏳</span>
+            </div>
+        </div>
+
+        <div id="tableContainer">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código Envío</th>
+                        <th>Destinatario</th>
+                        <th>Estado</th>
+                        <th>Fecha Entrega</th>
+                        <th>Mensajero</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    {% for entrega in page_obj %}
+                    <tr>
+                        <td>#{{ entrega.envio.id }}</td>
+                        <td>{{ entrega.envio.destinatario_nombre|default:"N/A" }}</td>
+                        <td>
+                            <span
+                                class="badge badge-{% if entrega.estado == 'Entregado' %}success{% elif entrega.estado == 'En tránsito' %}info{% else %}warning{% endif %}">
+                                {{ entrega.estado }}
+                            </span>
+                        </td>
+                        <td>{{ entrega.fecha_entrega|date:"d/m/Y H:i" }}</td>
+                        <td>{{ entrega.mensajero.nombre|default:"N/A" }}</td>
+                        <td>
+                            <a href="{% url 'envios:ver_entrega' entrega.id %}">Ver</a> |
+                            <a href="{% url 'envios:editar_entrega' entrega.id %}">Editar</a> |
+                            <a href="{% url 'envios:eliminar_entrega' entrega.id %}">Eliminar</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 2rem; color: var(--color-text-lighter);">
+                            {% if search_query %}
+                            No se encontraron entregas que coincidan con "{{ search_query }}"
+                            {% else %}
+                            No hay entregas registradas
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Paginación -->
+            {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                <span class="pagination-info">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    ({{ page_obj.paginator.count }} resultados)
+                </span>
+
+                {% if page_obj.has_previous %}
+                <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}"
+                    class="pagination-btn">⏮️</a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                    class="pagination-btn">◀️</a>
+                {% else %}
+                <button class="pagination-btn" disabled>⏮️</button>
+                <button class="pagination-btn" disabled>◀️</button>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="pagination-btn active">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <a
+                    href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                    class="pagination-btn">{{ num }}</a>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                        class="pagination-btn">▶️</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                        class="pagination-btn">⏭️</a>
+                    {% else %}
+                    <button class="pagination-btn" disabled>▶️</button>
+                    <button class="pagination-btn" disabled>⏭️</button>
+                    {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchLoader = document.getElementById('searchLoader');
+        let searchTimeout;
+
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            searchLoader.classList.add('active');
+
+            searchTimeout = setTimeout(() => {
+                const searchValue = this.value;
+                const url = new URL(window.location.href);
+
+                if (searchValue) {
+                    url.searchParams.set('search', searchValue);
+                } else {
+                    url.searchParams.delete('search');
+                }
+                url.searchParams.set('page', '1');
+
+                window.location.href = url.toString();
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>

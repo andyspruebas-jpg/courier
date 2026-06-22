@@ -1,0 +1,16 @@
+{
+  "executionEnvironments": [
+    {
+      "root": ".",
+      "venv": "venv"
+    }
+  ],
+  "venvPath": ".",
+  "venv": "venv",
+  "extraPaths": [
+    "."
+  ],
+  "typeCheckingMode": "basic",
+  "reportMissingImports": false,
+  "reportMissingModuleSource": false
+}

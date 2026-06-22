@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguimiento {{ envio.numero_seguimiento }} - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/easy.css' %}?v=5">
+    <style>
+        .mensajero-foto {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+    <main class="easy-page">
+        <div class="easy-header">
+            <div>
+                <p class="eyebrow">Código {{ envio.numero_seguimiento }}</p>
+                <h1 id="tracking-title">{{ tracking.estado_publico|default:tracking.estado }}</h1>
+                <p id="tracking-description" class="page-subtitle">{{ tracking.estado_descripcion }}</p>
+            </div>
+            <div class="quick-actions">
+                <a class="btn btn-primary" href="{% url 'envios:ver_envio' envio.id %}">Ver guía</a>
+                <a class="btn btn-secondary" href="{% url 'envios:seguimiento_envio' %}">Buscar otro</a>
+            </div>
+        </div>
+
+        <section class="tracking-summary">
+            <article>
+                <span>Destino</span>
+                <strong id="tracking-destino">{{ tracking.destino_direccion }}</strong>
+            </article>
+            <article>
+                <span>Servicio</span>
+                <strong id="tracking-servicio">{{ tracking.tipo_servicio }}</strong>
+            </article>
+            <article>
+                <span>Pago</span>
+                <strong id="tracking-pago">{{ tracking.tipo_pago }}{% if tracking.pago %} - {{ tracking.pago.estado }}{% endif %}</strong>
+            </article>
+            <article id="tracking-mensajero-card" {% if not tracking.mensajero %}style="display:none"{% endif %}>
+                <span>Mensajero</span>
+                {% if tracking.mensajero.foto_url %}
+                    <img id="tracking-mensajero-foto" class="mensajero-foto" src="{{ tracking.mensajero.foto_url }}" alt="">
+                {% else %}
+                    <img id="tracking-mensajero-foto" class="mensajero-foto" src="" alt="" style="display:none">
+                {% endif %}
+                <strong id="tracking-mensajero">{{ tracking.mensajero.nombre }} - {{ tracking.mensajero.telefono|default:"Sin teléfono" }}</strong>
+            </article>
+            <article id="tracking-vehiculo-card" {% if not tracking.mensajero %}style="display:none"{% endif %}>
+                <span>Vehículo</span>
+                <strong id="tracking-vehiculo">{{ tracking.mensajero.vehiculo|default:"N/A" }}</strong>
+            </article>
+            <article id="tracking-ubicacion-card" {% if not tracking.mensajero %}style="display:none"{% endif %}>
+                <span>Ubicación</span>
+                {% if tracking.mensajero.ubicacion_visible %}
+                    <strong id="tracking-ubicacion">Cerca del destino{% if tracking.mensajero.distancia_destino_m %} ({{ tracking.mensajero.distancia_destino_m }} m aprox.){% endif %}</strong>
+                {% else %}
+                    <strong id="tracking-ubicacion">{{ tracking.mensajero.mensaje_ubicacion }}</strong>
+                {% endif %}
+                <p id="tracking-coordenadas" class="muted">{% if tracking.mensajero.latitud and tracking.mensajero.longitud %}{{ tracking.mensajero.latitud }}, {{ tracking.mensajero.longitud }}{% endif %}</p>
+            </article>
+        </section>
+
+        <section class="report-panel">
+            <div class="panel-heading">
+                <h2>Estado del servicio</h2>
+            </div>
+            <div id="tracking-steps" class="tracking-summary">
+                {% for etapa in tracking.etapas %}
+                <article>
+                    <span>{% if etapa.completed %}Completado{% elif etapa.current %}Actual{% else %}Pendiente{% endif %}</span>
+                    <strong>{{ etapa.label }}</strong>
+                    <p class="muted">{{ etapa.description }}</p>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="report-panel">
+            <div class="panel-heading">
+                <h2>Línea de tiempo</h2>
+            </div>
+            <div id="tracking-timeline" class="timeline">
+                {% for evento in tracking.timeline %}
+                <div class="timeline-item">
+                    <span class="timeline-dot"></span>
+                    <div>
+                        <strong>{{ evento.tipo }}</strong>
+                        <span>{{ evento.fecha }}</span>
+                        {% if evento.observaciones %}<p>{{ evento.observaciones }}</p>{% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <p>Sin eventos registrados.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+    <script>
+        const trackingEndpoint = "{% url 'envios:seguimiento_api' envio.numero_seguimiento %}";
+        let trackingTimer;
+
+        function setText(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value || "";
+        }
+
+        function pagoTexto(data) {
+            if (!data.pago) return data.tipo_pago || "Pendiente";
+            return `${data.tipo_pago || "Pendiente"} - ${data.pago.estado || "Pendiente"}`;
+        }
+
+        function actualizarMensajero(mensajero) {
+            const ids = ["tracking-mensajero-card", "tracking-vehiculo-card", "tracking-ubicacion-card"];
+            ids.forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = mensajero ? "" : "none";
+            });
+            if (!mensajero) return;
+
+            const telefono = mensajero.telefono || "Sin teléfono";
+            setText("tracking-mensajero", `${mensajero.nombre || ""} - ${telefono}`);
+            setText("tracking-vehiculo", mensajero.vehiculo || "N/A");
+            const foto = document.getElementById("tracking-mensajero-foto");
+            if (foto) {
+                if (mensajero.foto_url) {
+                    foto.src = mensajero.foto_url;
+                    foto.style.display = "";
+                } else {
+                    foto.removeAttribute("src");
+                    foto.style.display = "none";
+                }
+            }
+            if (mensajero.ubicacion_visible) {
+                const distancia = mensajero.distancia_destino_m ? ` (${mensajero.distancia_destino_m} m aprox.)` : "";
+                setText("tracking-ubicacion", `Cerca del destino${distancia}`);
+                setText("tracking-coordenadas", mensajero.latitud && mensajero.longitud ? `${mensajero.latitud}, ${mensajero.longitud}` : "");
+            } else {
+                setText("tracking-ubicacion", mensajero.mensaje_ubicacion);
+                setText("tracking-coordenadas", "");
+            }
+        }
+
+        function renderEtapas(etapas) {
+            const container = document.getElementById("tracking-steps");
+            if (!container) return;
+            container.innerHTML = "";
+            (etapas || []).forEach((etapa) => {
+                const article = document.createElement("article");
+                const estado = etapa.completed ? "Completado" : (etapa.current ? "Actual" : "Pendiente");
+                article.innerHTML = `<span>${estado}</span><strong>${etapa.label || ""}</strong><p class="muted">${etapa.description || ""}</p>`;
+                container.appendChild(article);
+            });
+        }
+
+        function renderTimeline(timeline) {
+            const container = document.getElementById("tracking-timeline");
+            if (!container) return;
+            container.innerHTML = "";
+            if (!timeline || timeline.length === 0) {
+                container.innerHTML = "<p>Sin eventos registrados.</p>";
+                return;
+            }
+            timeline.forEach((evento) => {
+                const item = document.createElement("div");
+                item.className = "timeline-item";
+                const obs = evento.observaciones ? `<p>${evento.observaciones}</p>` : "";
+                item.innerHTML = `<span class="timeline-dot"></span><div><strong>${evento.tipo || ""}</strong><span>${evento.fecha || ""}</span>${obs}</div>`;
+                container.appendChild(item);
+            });
+        }
+
+        function actualizarSeguimiento(data) {
+            setText("tracking-title", data.estado_publico || data.estado);
+            setText("tracking-description", data.estado_descripcion);
+            setText("tracking-destino", data.destino_direccion);
+            setText("tracking-servicio", data.tipo_servicio);
+            setText("tracking-pago", pagoTexto(data));
+            actualizarMensajero(data.mensajero);
+            renderEtapas(data.etapas);
+            renderTimeline(data.timeline);
+        }
+
+        async function refrescarSeguimiento() {
+            try {
+                const response = await fetch(trackingEndpoint, { headers: { "Accept": "application/json" } });
+                if (!response.ok) return;
+                const data = await response.json();
+                actualizarSeguimiento(data);
+                const seconds = Number(data.poll_interval_seconds || 10);
+                clearInterval(trackingTimer);
+                trackingTimer = setInterval(refrescarSeguimiento, seconds * 1000);
+            } catch (error) {
+                console.warn("No se pudo refrescar seguimiento", error);
+            }
+        }
+
+        trackingTimer = setInterval(refrescarSeguimiento, 10000);
+        window.addEventListener("beforeunload", () => clearInterval(trackingTimer));
+    </script>
+</body>
+</html>

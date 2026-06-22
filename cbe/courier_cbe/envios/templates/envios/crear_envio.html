@@ -1,0 +1,262 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Envío - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+    <style>
+        #map-origen,
+        #map-destino {
+            height: 400px;
+            width: 100%;
+            margin: 1rem 0;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+        }
+
+        .map-step {
+            background: var(--color-bg-secondary);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--color-border);
+            margin-bottom: 2rem;
+        }
+
+        .map-step h2 {
+            color: var(--color-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <div class="form-page-container">
+        <h1>➕ Crear Nuevo Envío</h1>
+
+        <form method="POST" id="envioForm">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="id_remitente_nombre" class="required">Remitente nombre</label>
+                {{ form.remitente_nombre }}
+                {% if form.remitente_nombre.errors %}
+                <span class="error-message">{{ form.remitente_nombre.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_remitente_telefono" class="required">Remitente teléfono</label>
+                {{ form.remitente_telefono }}
+                {% if form.remitente_telefono.errors %}
+                <span class="error-message">{{ form.remitente_telefono.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_origen_direccion" class="required">Origen dirección</label>
+                {{ form.origen_direccion }}
+                {% if form.origen_direccion.errors %}
+                <span class="error-message">{{ form.origen_direccion.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_destino_direccion" class="required">Destino dirección</label>
+                {{ form.destino_direccion }}
+                {% if form.destino_direccion.errors %}
+                <span class="error-message">{{ form.destino_direccion.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_destinatario_nombre" class="required">Destinatario nombre</label>
+                {{ form.destinatario_nombre }}
+                {% if form.destinatario_nombre.errors %}
+                <span class="error-message">{{ form.destinatario_nombre.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_destinatario_telefono" class="required">Destinatario teléfono</label>
+                {{ form.destinatario_telefono }}
+                {% if form.destinatario_telefono.errors %}
+                <span class="error-message">{{ form.destinatario_telefono.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_peso">Peso (kg)</label>
+                {{ form.peso }}
+                {% if form.peso.errors %}
+                <span class="error-message">{{ form.peso.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_tipo_servicio" class="required">Tipo servicio</label>
+                {{ form.tipo_servicio }}
+                {% if form.tipo_servicio.errors %}
+                <span class="error-message">{{ form.tipo_servicio.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_estado" class="required">Estado</label>
+                {{ form.estado }}
+                {% if form.estado.errors %}
+                <span class="error-message">{{ form.estado.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_observaciones">Observaciones</label>
+                {{ form.observaciones }}
+                {% if form.observaciones.errors %}
+                <span class="error-message">{{ form.observaciones.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_monto_pago">Monto pago</label>
+                {{ form.monto_pago }}
+                {% if form.monto_pago.errors %}
+                <span class="error-message">{{ form.monto_pago.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_tipo" class="required">Tipo</label>
+                {{ form.tipo }}
+                {% if form.tipo.errors %}
+                <span class="error-message">{{ form.tipo.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_tipo_pago" class="required">Tipo pago</label>
+                {{ form.tipo_pago }}
+                {% if form.tipo_pago.errors %}
+                <span class="error-message">{{ form.tipo_pago.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_mensajero">Mensajero</label>
+                {{ form.mensajero }}
+                {% if form.mensajero.errors %}
+                <span class="error-message">{{ form.mensajero.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Paso 1: Selección de Origen -->
+            <div id="origen-section" class="map-step">
+                <h2>📍 Seleccionar ubicación de ORIGEN</h2>
+                <div id="map-origen"></div>
+                <input type="hidden" name="latitud_origen" id="id_latitud_origen">
+                <input type="hidden" name="longitud_origen" id="id_longitud_origen">
+                <button type="button" id="btn-siguiente" class="btn btn-primary">➡️ Siguiente</button>
+                <div id="error-origen" class="error-message"></div>
+            </div>
+
+            <!-- Paso 2: Selección de Destino -->
+            <div id="destino-section" class="map-step hidden">
+                <h2>📍 Seleccionar ubicación de DESTINO</h2>
+                <div id="map-destino"></div>
+                <input type="hidden" name="latitud_destino" id="id_latitud_destino">
+                <input type="hidden" name="longitud_destino" id="id_longitud_destino">
+                <div id="error-destino" class="error-message"></div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-success">✅ Crear Envío</button>
+                <a href="{% url 'envios:lista_envios' %}" class="btn btn-secondary">↩️ Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let origenMap, destinoMap;
+        let origenMarker, destinoMarker;
+
+        function initMap() {
+            const laPaz = { lat: -16.5, lng: -68.1193 };
+
+            // MAPA DE ORIGEN
+            origenMap = new google.maps.Map(document.getElementById("map-origen"), {
+                zoom: 13,
+                center: laPaz,
+            });
+
+            origenMarker = new google.maps.Marker({
+                position: laPaz,
+                map: origenMap,
+                draggable: true,
+            });
+
+            document.getElementById("id_latitud_origen").value = origenMarker.getPosition().lat();
+            document.getElementById("id_longitud_origen").value = origenMarker.getPosition().lng();
+
+            google.maps.event.addListener(origenMarker, 'dragend', function (event) {
+                document.getElementById("id_latitud_origen").value = event.latLng.lat();
+                document.getElementById("id_longitud_origen").value = event.latLng.lng();
+            });
+
+            // MAPA DE DESTINO
+            destinoMap = new google.maps.Map(document.getElementById("map-destino"), {
+                zoom: 13,
+                center: laPaz,
+            });
+
+            destinoMarker = new google.maps.Marker({
+                position: laPaz,
+                map: destinoMap,
+                draggable: true,
+            });
+
+            document.getElementById("id_latitud_destino").value = destinoMarker.getPosition().lat();
+            document.getElementById("id_longitud_destino").value = destinoMarker.getPosition().lng();
+
+            google.maps.event.addListener(destinoMarker, 'dragend', function (event) {
+                document.getElementById("id_latitud_destino").value = event.latLng.lat();
+                document.getElementById("id_longitud_destino").value = event.latLng.lng();
+            });
+
+            // Botón "Siguiente"
+            document.getElementById("btn-siguiente").addEventListener("click", function () {
+                if (!document.getElementById("id_latitud_origen").value) {
+                    showError("error-origen", "Por favor selecciona primero el punto de ORIGEN.");
+                    return;
+                } else {
+                    clearError("error-origen");
+                }
+                document.getElementById("origen-section").classList.add("hidden");
+                document.getElementById("destino-section").classList.remove("hidden");
+                google.maps.event.trigger(destinoMap, "resize");
+                destinoMap.setCenter(origenMarker.getPosition());
+            });
+        }
+
+        function showError(elementId, message) {
+            document.getElementById(elementId).innerText = message;
+        }
+
+        function clearError(elementId) {
+            document.getElementById(elementId).innerText = '';
+        }
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap"
+        async defer></script>
+</body>
+
+</html>

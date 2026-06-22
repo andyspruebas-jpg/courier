@@ -1,0 +1,83 @@
+# ============================================================
+#  Courier Bolivian Express — .gitignore (raíz)
+#  Excluye SECRETOS y DATOS SENSIBLES del repositorio.
+# ============================================================
+
+# --- Secretos / configuración local ---
+.env
+*.env
+!.env.example
+**/.env
+**/maps-config.js
+.claude/
+*.pem
+*.key
+*.jks
+*.keystore
+key.properties
+google-services.json
+GoogleService-Info.plist
+
+# --- Base de datos local (datos reales de clientes) ---
+*.sqlite3
+*.db
+*.dump
+*.sql
+
+# --- Media / archivos subidos (fotos, firmas de clientes) ---
+media/
+protected_media/
+cbe/courier_cbe/media/
+cbe/courier_cbe/protected_media/
+
+# --- Caché de rutas (coordenadas/direcciones reales) ---
+cbe/courier_cbe/data/road_route_cache.json
+data/road_route_cache.json
+
+# --- Backups de repos git anidados (temporal durante el push) ---
+**/.git.disabled/
+*.git.bak/
+
+# ============================================================
+#  Python / Django
+# ============================================================
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+*.log
+
+# Build de PyInstaller / ejecutables empaquetados
+cbe/build/
+cbe/dist/
+build/build_exe/
+*.exe
+
+# ============================================================
+#  Flutter / Dart
+# ============================================================
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+**/build/
+/coverage/
+*.iml
+.metadata.bak
+**/ios/Flutter/.last_build_id
+app.*.symbols
+app.*.map.json
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# ============================================================
+#  Sistema / Editor
+# ============================================================
+.DS_Store
+*.swp
+.idea/
+.vscode/

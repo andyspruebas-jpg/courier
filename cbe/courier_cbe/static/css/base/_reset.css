@@ -1,0 +1,15 @@
+/* reset.css */
+
+/* Restablecer márgenes y rellenos a cero */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Fuente base para todo el documento */
+body {
+    font-family: 'Arial', sans-serif;
+}

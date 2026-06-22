@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reasignar Envío - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+</head>
+<body>
+    {% include 'includes/navbar.html' %}
+    <div class="form-page-container">
+        <h1>Reasignar {{ envio.numero_seguimiento }}</h1>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="mensajero_id">Mensajero nuevo</label>
+                <select class="form-control" id="mensajero_id" name="mensajero_id" required>
+                    {% for m in mensajeros %}
+                    <option value="{{ m.id }}">{{ m.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="motivo">Motivo</label>
+                <textarea class="form-control" id="motivo" name="motivo" required></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-success">Reasignar</button>
+                <a class="btn btn-secondary" href="{% url 'envios:ver_envio' envio.id %}">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

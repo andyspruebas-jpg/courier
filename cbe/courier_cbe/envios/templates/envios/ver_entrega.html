@@ -1,0 +1,451 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Detalles de la Entrega</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+
+  <style>
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .detail-container {
+      max-width: 800px;
+      margin: 3rem auto;
+      padding: 2.5rem;
+      background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+      border-radius: 1.5rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(99, 102, 241, 0.3);
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .detail-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: 1.5rem;
+      padding: 2px;
+      background: linear-gradient(135deg, #6366f1 0%, #14b8a6 50%, #6366f1 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite: exclude;
+      opacity: 0.6;
+      animation: borderRotate 3s linear infinite;
+    }
+
+    @keyframes borderRotate {
+
+      0%,
+      100% {
+        background: linear-gradient(135deg, #6366f1 0%, #14b8a6 50%, #6366f1 100%);
+      }
+
+      50% {
+        background: linear-gradient(135deg, #14b8a6 0%, #6366f1 50%, #14b8a6 100%);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .detail-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .detail-header h1 {
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, #818cf8 0%, #14b8a6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+      font-weight: 800;
+    }
+
+    .detail-header p {
+      color: #a1a1aa;
+      font-size: 1rem;
+    }
+
+    .detail-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      background: rgba(39, 39, 42, 0.6);
+      border-radius: 0.75rem;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .info-row:hover {
+      background: rgba(39, 39, 42, 0.8);
+      border-color: rgba(99, 102, 241, 0.5);
+      transform: translateX(5px);
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+    }
+
+    .info-icon {
+      font-size: 1.5rem;
+      margin-right: 1rem;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .info-label {
+      font-weight: 700;
+      color: #a1a1aa;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+      color: #fafafa;
+      font-size: 1.125rem;
+      font-weight: 500;
+    }
+
+    .info-text {
+      flex: 1;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+      font-weight: 700;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .status-badge.entregado {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+
+    .status-badge.rechazado {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+
+    .status-badge.otro {
+      background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+      color: white;
+    }
+
+    .firma-section {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: rgba(39, 39, 42, 0.4);
+      border-radius: 0.75rem;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .firma-section h2 {
+      color: #fafafa;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .firma-img {
+      max-width: 300px;
+      width: 100%;
+      border-radius: 0.75rem;
+      border: 2px solid rgba(99, 102, 241, 0.3);
+      padding: 0.5rem;
+      background: white;
+    }
+
+    .incident-section {
+      margin-top: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .incident-section h2 {
+      color: #fafafa;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .incident {
+      background: rgba(251, 146, 60, 0.1);
+      border-left: 4px solid #f97316;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 0.5rem;
+      color: #fafafa;
+    }
+
+    .incident strong {
+      color: #fb923c;
+    }
+
+    .empty {
+      color: #a1a1aa;
+      font-style: italic;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .actions {
+      margin-top: 2.5rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);
+      color: white;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .btn:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .btn:hover {
+      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+      box-shadow: 0 8px 30px rgba(99, 102, 241, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .btn-success:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    }
+
+    @media (max-width: 640px) {
+      .detail-container {
+        margin: 1.5rem;
+        padding: 1.5rem;
+      }
+
+      .detail-header h1 {
+        font-size: 2rem;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    @media print {
+      body {
+        background: white;
+      }
+
+      .navbar,
+      .actions {
+        display: none !important;
+      }
+
+      .detail-container {
+        box-shadow: none;
+        border: 1px solid #000;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  {% include 'includes/navbar.html' %}
+
+  <div class="detail-container">
+    <div class="detail-header">
+      <h1>📦 Detalles de la Entrega</h1>
+      <p>Información completa de la entrega realizada</p>
+    </div>
+
+    <div class="detail-content">
+      <div class="info-row">
+        <div class="info-icon">🆔</div>
+        <div class="info-text">
+          <div class="info-label">ID de Envío</div>
+          <div class="info-value">{{ entrega.envio.id }} — {{ entrega.envio.destinatario_nombre }}</div>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-icon">📋</div>
+        <div class="info-text">
+          <div class="info-label">Tipo de Envío</div>
+          <div class="info-value">{{ entrega.envio.tipo }}</div>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-icon">👤</div>
+        <div class="info-text">
+          <div class="info-label">Remitente</div>
+          <div class="info-value">{{ entrega.envio.remitente_nombre }} ({{ entrega.envio.origen_direccion }})</div>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-icon">📍</div>
+        <div class="info-text">
+          <div class="info-label">Destino</div>
+          <div class="info-value">{{ entrega.envio.destino_direccion }}</div>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-icon">🚴</div>
+        <div class="info-text">
+          <div class="info-label">Mensajero</div>
+          <div class="info-value">{{ entrega.mensajero.nombre }} {{ entrega.mensajero.apellido }}</div>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-icon">📅</div>
+        <div class="info-text">
+          <div class="info-label">Fecha de Entrega</div>
+          <div class="info-value">{{ entrega.fecha_entrega|date:"d/m/Y H:i" }}</div>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-icon">🎯</div>
+        <div class="info-text">
+          <div class="info-label">Estado</div>
+          <div class="info-value">
+            {% if entrega.estado == "Entregado" %}
+            <span class="status-badge entregado">{{ entrega.estado }}</span>
+            {% elif entrega.estado == "Rechazado" %}
+            <span class="status-badge rechazado">{{ entrega.estado }}</span>
+            {% else %}
+            <span class="status-badge otro">{{ entrega.estado }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-icon">💰</div>
+        <div class="info-text">
+          <div class="info-label">Pagado</div>
+          <div class="info-value">{% if entrega.pagado %}✅ Sí{% else %}❌ No{% endif %}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="firma-section">
+      <h2>✍️ Firma de entrega</h2>
+      {% if entrega.firma %}
+      <img src="{% url 'envios:ver_firma' entrega.id %}" alt="Firma de entrega" class="firma-img"
+        referrerpolicy="no-referrer">
+      {% else %}
+      <p class="empty">No se proporcionó firma.</p>
+      {% endif %}
+    </div>
+
+    <div class="incident-section">
+      <h2>🚨 Incidentes asociados</h2>
+      {% if entrega.envio.incidente_set.all %}
+      {% for inc in entrega.envio.incidente_set.all %}
+      <div class="incident">
+        <p><strong>Tipo:</strong> {{ inc.tipo }}</p>
+        <p><strong>Descripción:</strong> {{ inc.descripcion }}</p>
+        <p><strong>Estado:</strong> {{ inc.estado }}</p>
+      </div>
+      {% empty %}
+      <p class="empty">No hay incidentes registrados para este envío.</p>
+      {% endfor %}
+      {% else %}
+      <p class="empty">No hay incidentes registrados.</p>
+      {% endif %}
+    </div>
+
+    <div class="actions">
+      <a href="{% url 'envios:lista_entregas' %}" class="btn">
+        <span>⬅</span>
+        <span>Volver a entregas</span>
+      </a>
+      <button onclick="window.print()" class="btn btn-success">
+        <span>🖨️</span>
+        <span>Imprimir</span>
+      </button>
+    </div>
+  </div>
+</body>
+
+</html>

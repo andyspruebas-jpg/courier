@@ -1,0 +1,126 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Envío - CBE</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-top: 20px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 2px solid var(--color-gray-200);
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'includes/navbar.html' %}
+
+    <div class="form-page-container">
+        <h1>✏️ Editar Envío</h1>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="form-grid">
+                {% for field in form %}
+                <div
+                    class="form-group {% if field.name == 'observaciones' or field.name == 'descripcion' %}form-grid-full{% endif %}">
+                    <label for="{{ field.id_for_label }}" {% if field.field.required %}class="required" {% endif %}>
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <span class="error-message">{{ field.errors.0 }}</span>
+                    {% endif %}
+                    {% if field.help_text %}
+                    <span class="help-text">{{ field.help_text }}</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Campos ocultos para coordenadas -->
+            <input type="hidden" name="latitud_origen" id="id_latitud_origen" value="{{ envio.latitud_origen }}">
+            <input type="hidden" name="longitud_origen" id="id_longitud_origen" value="{{ envio.longitud_origen }}">
+            <input type="hidden" name="latitud_destino" id="id_latitud_destino" value="{{ envio.latitud_destino }}">
+            <input type="hidden" name="longitud_destino" id="id_longitud_destino" value="{{ envio.longitud_destino }}">
+
+            <h2>📍 Ubicación de Origen y Destino</h2>
+            <div id="map"></div>
+
+            <div class="form-actions" style="margin-top: 2rem;">
+                <button type="submit" class="btn btn-success">💾 Actualizar Envío</button>
+                <a href="{% url 'envios:lista_envios' %}" class="btn btn-secondary">↩️ Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Script del mapa -->
+    <script>
+        function initMap() {
+            const origen = {
+                lat: parseFloat("{{ envio.latitud_origen|default:-16.5 }}"),
+                lng: parseFloat("{{ envio.longitud_origen|default:-68.1193 }}")
+            };
+            const destino = {
+                lat: parseFloat("{{ envio.latitud_destino|default:-16.52 }}"),
+                lng: parseFloat("{{ envio.longitud_destino|default:-68.12 }}")
+            };
+
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 13,
+                center: origen,
+                styles: [
+                    { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+                    { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+                    { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] }
+                ]
+            });
+
+            const markerOrigen = new google.maps.Marker({
+                map,
+                position: origen,
+                label: "O",
+                draggable: true,
+                title: "Origen"
+            });
+
+            const markerDestino = new google.maps.Marker({
+                map,
+                position: destino,
+                label: "D",
+                draggable: true,
+                title: "Destino"
+            });
+
+            google.maps.event.addListener(markerOrigen, 'dragend', function (event) {
+                document.getElementById("id_latitud_origen").value = event.latLng.lat();
+                document.getElementById("id_longitud_origen").value = event.latLng.lng();
+            });
+
+            google.maps.event.addListener(markerDestino, 'dragend', function (event) {
+                document.getElementById("id_latitud_destino").value = event.latLng.lat();
+                document.getElementById("id_longitud_destino").value = event.latLng.lng();
+            });
+
+            const bounds = new google.maps.LatLngBounds();
+            bounds.extend(origen);
+            bounds.extend(destino);
+            map.fitBounds(bounds);
+        }
+    </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap"
+        async defer></script>
+</body>
+
+</html>

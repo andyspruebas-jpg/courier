@@ -1,0 +1,34 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/easy.css' %}?v=7">
+<body>
+    <!-- Barra de navegación -->
+    <nav class="cbe-nav">
+        {% with rol=request.usuario_actual.rol.nombre|lower %}
+        <ul>
+            {% if rol == "cliente" %}
+            <li><a href="{% url 'usuarios:home' %}">Inicio</a></li>
+            <li><a href="{% url 'envios:solicitar_envio' %}">Solicitar</a></li>
+            <li><a href="{% url 'envios:lista_envios' %}">Mis envíos</a></li>
+            <li><a href="{% url 'envios:seguimiento_envio' %}">Seguimiento</a></li>
+            <li><a href="{% url 'cerrar_sesion' %}">Cerrar Sesión</a></li>
+            {% elif request.usuario_actual %}
+            <li><a href="{% url 'usuarios:home' %}">Dashboard</a></li>
+            <li><a href="{% url 'usuarios:lista_usuarios' %}">Usuarios</a></li>
+            <li><a href="{% url 'usuarios:lista_empresas' %}">Empresas</a></li>
+            <li><a href="{% url 'usuarios:mensajeros' %}">Mensajeros</a></li>
+            <li><a href="{% url 'envios:lista_envios' %}">Sobres</a></li>
+            <li><a href="{% url 'envios:solicitar_envio' %}">Solicitar</a></li>
+            <li><a href="{% url 'envios:seguimiento_envio' %}">Seguimiento</a></li>
+            <li><a href="{% url 'envios:lista_entregas' %}">Entregados</a></li>
+            <li><a href="{% url 'rutas:lista_rutas' %}">Rutas</a></li>
+            <li><a href="{% url 'zonas:lista_zonas' %}">Zonas</a></li>
+            <li><a href="{% url 'envios:reportes_operativos' %}">Reportes</a></li>
+            <li><a href="{% url 'cerrar_sesion' %}">Cerrar Sesión</a></li>
+            {% else %}
+            <li><a href="{% url 'envios:seguimiento_envio' %}">Seguimiento</a></li>
+            <li><a href="{% url 'usuarios:login' %}">Iniciar Sesión</a></li>
+            {% endif %}
+        </ul>
+        {% endwith %}
+    </nav>
+</body>

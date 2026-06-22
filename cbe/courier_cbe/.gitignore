@@ -1,0 +1,21 @@
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+venv/
+.env
+
+# Archivos de base de datos locales
+*.sqlite3
+
+# Archivos de sistema
+*.log
+*.DS_Store
+*.idea/
+.vscode/
+
+# Archivos estáticos o media locales
+/staticfiles/
+/media/
